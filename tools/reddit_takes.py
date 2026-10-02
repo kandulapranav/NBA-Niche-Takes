@@ -128,17 +128,19 @@ def to_take(post: dict) -> dict:
 # --- Fetching posts ---
 
 
-def fetch_live_posts(player: str | None) -> list[dict]:
-    """Recent posts from both subreddits. Raises requests.RequestException if Arctic Shift fails."""
-    # r/NBAHotTakes is small enough to keyword-search.
+def fetch_live_posts() -> list[dict]:
+    """Recent posts from both subreddits. Raises requests.RequestException if Arctic Shift fails.
+
+    We never keyword-search: Arctic Shift's search often times out (HTTP 422 "Timeout"), and
+    filtering locally lets aliases like "Wemby" match "Wembanyama". It also means every request
+    shares the same few cached pages.
+    """
+    # r/NBAHotTakes is quiet: its latest 100 posts go back more than a year.
     params = {"subreddit": "NBAHotTakes", "limit": 100, "sort": "desc"}
-    if player:
-        params["query"] = player
     posts = get_json(ARCTIC_SHIFT + "/api/posts/search", params)["data"]
 
-    # r/NBATalk rejects keyword search (HTTP 422), and 100 posts there is only ~8 hours.
-    # So grab the 100 posts before a few sample days and filter by player locally.
-    # Dates (not timestamps) keep the cache key stable all day.
+    # r/NBATalk is busy: 100 posts is only ~8 hours. So grab the 100 posts before a few
+    # sample days. Dates (not timestamps) keep the cache key stable all day.
     for days_ago in NBATALK_DAYS_AGO:
         before = (date.today() - timedelta(days=days_ago)).isoformat()
         params = {"subreddit": "NBATalk", "before": before, "limit": 100, "sort": "desc"}
@@ -168,7 +170,7 @@ def find_hot_takes(player: str | None = None, min_spice: int = 1, limit: int = 3
     try:
         if os.environ.get("FORCE_TAKES_FALLBACK") == "1":
             raise requests.ConnectionError("FORCE_TAKES_FALLBACK is set")
-        posts = fetch_live_posts(player)
+        posts = fetch_live_posts()
     except (requests.RequestException, KeyError, ValueError):
         posts, source = load_seed_posts(), "cached"
 
@@ -189,7 +191,9 @@ def find_hot_takes(player: str | None = None, min_spice: int = 1, limit: int = 3
         return json.dumps({"error": f"No unseen takes at spice {min_spice}+"
                            + (f" about '{player}'" if player else "")
                            + ". Try a lower min_spice, a different player, or no player."})
-    takes.sort(key=lambda t: (t["spice"], t["num_comments"]), reverse=True)
+    # Takes that name the player in the title beat ones that only mention them in the body.
+    named = {t["id"] for t in takes if player and mentions(t["title"], search_terms(player))}
+    takes.sort(key=lambda t: (t["id"] in named, t["spice"], t["num_comments"]), reverse=True)
     takes = takes[:limit]
 
     # Remember what we served, so we don't repeat it and prep_for_pushback can find it.
