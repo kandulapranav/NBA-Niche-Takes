@@ -12,17 +12,20 @@
         <style>
             :root {
                 --space: #07080f;
-                --window: #ffffff;
-                --canvas: #f5f6f9;
-                --gray: #eceef3;
-                --text: #1c2130;
-                --muted: #8a93a6;
+                --window: rgba(14, 17, 26, 0.45);
+                --surface: rgba(255, 255, 255, 0.06);
+                --edge: rgba(255, 255, 255, 0.1);
+                --canvas: rgba(255, 255, 255, 0.04);
+                --gray: rgba(255, 255, 255, 0.09);
+                --text: #e9edf3;
+                --soft-text: #b8c0cc;
+                --muted: #8b95a5;
                 --orange: #f26a1b;
                 --orange-2: #ff9a3c;
                 --gradient: linear-gradient(135deg, #ff9a3c 0%, #f26a1b 55%, #e2471c 100%);
                 --good: #12a26b;
                 --bad: #d6334a;
-                --soft-shadow: 0 10px 30px -12px rgba(28, 33, 48, 0.25);
+                --soft-shadow: 0 14px 34px -14px rgba(0, 0, 0, 0.7);
                 --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
             }
             * {
@@ -139,8 +142,13 @@
                 display: flex;
                 flex-direction: column;
                 background: var(--window);
+                backdrop-filter: blur(5px);
+                -webkit-backdrop-filter: blur(5px);
+                border: 1px solid var(--edge);
                 border-radius: 22px;
-                overflow: hidden;
+                /* clip, not hidden: the closed sheet sits below the window, and a "hidden"
+                   box can still be scrolled by the browser (e.g. when focus moves). */
+                overflow: clip;
                 box-shadow:
                     0 30px 80px -20px rgba(0, 0, 0, 0.7),
                     0 0 0 1px rgba(255, 255, 255, 0.06);
@@ -161,7 +169,7 @@
                 align-items: center;
                 gap: 0.75rem;
                 padding: 0.85rem 1rem;
-                background: var(--gradient);
+                border-bottom: 1px solid var(--edge);
                 color: #fff;
             }
             .avatar-wrap {
@@ -175,7 +183,7 @@
                 height: 11px;
                 border-radius: 50%;
                 background: #3ddc97;
-                border: 2px solid #fff;
+                border: 2px solid #0e111a;
             }
             .win-head .who {
                 flex: 1;
@@ -197,14 +205,15 @@
                 line-height: 1;
             }
             .win-head .icon-btn:hover {
-                background: rgba(255, 255, 255, 0.18);
+                background: var(--gray);
             }
             .menu {
                 position: absolute;
                 top: 3.4rem;
                 right: 0.9rem;
                 z-index: 5;
-                background: #fff;
+                background: rgba(22, 26, 37, 0.97);
+                border: 1px solid var(--edge);
                 color: var(--text);
                 border-radius: 12px;
                 box-shadow: var(--soft-shadow);
@@ -231,7 +240,6 @@
             #scroll {
                 flex: 1;
                 overflow-y: auto;
-                background: var(--canvas);
                 padding: 1.25rem 1rem 1.5rem;
             }
 
@@ -297,7 +305,8 @@
                 width: 100%;
                 max-width: 420px;
                 margin-top: 1.4rem;
-                background: #fff;
+                background: var(--surface);
+                border: 1px solid var(--edge);
                 border-radius: 16px;
                 box-shadow: var(--soft-shadow);
                 padding: 0.9rem 1rem 0.4rem;
@@ -319,7 +328,7 @@
                 padding: 0.75rem 0.1rem;
                 border-top: 1px solid var(--gray);
                 font-size: 0.9rem;
-                color: #4b5366;
+                color: var(--soft-text);
                 text-align: left;
             }
             .options button::before {
@@ -365,9 +374,10 @@
             }
             .bubble.bot {
                 align-self: flex-start;
-                background: #fff;
+                background: var(--surface);
+                border: 1px solid var(--edge);
                 border-bottom-left-radius: 5px;
-                box-shadow: 0 2px 8px -4px rgba(28, 33, 48, 0.2);
+                box-shadow: 0 2px 8px -4px rgba(0, 0, 0, 0.5);
             }
             .bubble.me {
                 background: var(--gradient);
@@ -421,11 +431,12 @@
             .dots {
                 display: flex;
                 gap: 4px;
-                background: #fff;
+                background: var(--surface);
+                border: 1px solid var(--edge);
                 border-radius: 18px;
                 border-bottom-left-radius: 5px;
                 padding: 0.75rem 0.9rem;
-                box-shadow: 0 2px 8px -4px rgba(28, 33, 48, 0.2);
+                box-shadow: 0 2px 8px -4px rgba(0, 0, 0, 0.5);
             }
             .dots span {
                 width: 7px;
@@ -460,7 +471,8 @@
 
             /* --- Take: card, link preview, receipt block --- */
             .card {
-                background: #fff;
+                background: var(--surface);
+                border: 1px solid var(--edge);
                 border-radius: 18px;
                 padding: 1rem 1.1rem;
                 box-shadow: var(--soft-shadow);
@@ -578,7 +590,7 @@
             }
             .receipt-note {
                 font-size: 0.85rem;
-                color: #4b5366;
+                color: var(--soft-text);
                 padding: 0 0.3rem;
             }
             .label {
@@ -610,7 +622,7 @@
             }
             .say.you {
                 align-self: flex-end;
-                background: #fff4ec;
+                background: rgba(242, 106, 27, 0.1);
                 border: 1.5px solid rgba(242, 106, 27, 0.45);
                 border-bottom-right-radius: 4px;
             }
@@ -658,7 +670,7 @@
             .h2h td.win span {
                 padding: 0.1rem 0.5rem;
                 border-radius: 999px;
-                background: #fff1e6;
+                background: rgba(242, 106, 27, 0.16);
                 color: var(--orange);
                 font-weight: 800;
             }
@@ -668,7 +680,7 @@
                 cursor: pointer;
                 font-size: 0.85rem;
                 font-weight: 600;
-                color: #4b5366;
+                color: var(--soft-text);
             }
             details .eyebrow {
                 margin-top: 0.8rem;
@@ -676,7 +688,7 @@
             details ul {
                 margin: 0.3rem 0 0 1.1rem;
                 font-size: 0.86rem;
-                color: #4b5366;
+                color: var(--soft-text);
             }
             details li {
                 margin-bottom: 0.35rem;
@@ -692,8 +704,9 @@
             .pill {
                 padding: 0.35rem 0.8rem;
                 border-radius: 999px;
-                background: #fff;
-                box-shadow: 0 2px 8px -4px rgba(28, 33, 48, 0.3);
+                background: var(--surface);
+                border: 1px solid var(--edge);
+                box-shadow: 0 2px 8px -4px rgba(0, 0, 0, 0.5);
                 font-size: 0.78rem;
                 font-weight: 600;
             }
@@ -713,8 +726,7 @@
                 align-items: center;
                 gap: 0.5rem;
                 padding: 0.7rem 0.8rem;
-                border-top: 1px solid var(--gray);
-                background: #fff;
+                border-top: 1px solid var(--edge);
             }
             #menu-btn {
                 width: 2.5rem;
@@ -732,6 +744,7 @@
                 min-width: 0;
                 border: none;
                 outline: none;
+                background: transparent;
                 font: inherit;
                 font-size: 0.95rem;
                 color: var(--text);
@@ -756,7 +769,7 @@
                 position: absolute;
                 inset: 0;
                 z-index: 6;
-                background: rgba(28, 33, 48, 0.35);
+                background: rgba(0, 0, 0, 0.45);
                 opacity: 0;
                 pointer-events: none;
                 transition: opacity 0.25s;
@@ -767,7 +780,8 @@
                 right: 0;
                 bottom: 0;
                 z-index: 7;
-                background: #fff;
+                background: rgba(16, 19, 29, 0.97);
+                border-top: 1px solid var(--edge);
                 border-radius: 22px 22px 0 0;
                 padding: 1.3rem 1rem 1.1rem;
                 box-shadow: 0 -20px 50px -20px rgba(0, 0, 0, 0.4);
@@ -831,11 +845,11 @@
                 place-items: center;
                 font-weight: 700;
                 color: var(--muted);
-                box-shadow: 0 8px 16px -8px rgba(28, 33, 48, 0.5);
+                box-shadow: 0 8px 16px -8px rgba(0, 0, 0, 0.6);
             }
             .player.on .headshot {
                 box-shadow:
-                    0 0 0 3px #fff,
+                    0 0 0 3px #0e111a,
                     0 0 0 5px var(--orange);
             }
             .headshot img {
@@ -870,6 +884,8 @@
             .sheet .options {
                 max-width: none;
                 box-shadow: none;
+                border: none;
+                background: none;
                 padding: 0.4rem 0 0;
                 margin-top: 0.6rem;
             }
