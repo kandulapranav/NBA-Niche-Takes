@@ -3,191 +3,685 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Gemini Web Tool Calling</title>
+        <title>Ball Knowledge</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;600;800&display=swap"
+            rel="stylesheet"
+        />
         <style>
+            :root {
+                --bg: #0b0f1a;
+                --panel: #131a2b;
+                --panel-2: #1b2438;
+                --line: #2a3550;
+                --text: #eef2fb;
+                --muted: #8c98b3;
+                --orange: #ff6b1a;
+                --red: #e8263c;
+                --gold: #ffc531;
+                --blue: #2f7bff;
+                --display: "Anton", Impact, "Arial Narrow", sans-serif;
+            }
             * {
                 box-sizing: border-box;
                 margin: 0;
                 padding: 0;
             }
             body {
-                font-family: system-ui, sans-serif;
-                height: 100vh;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                padding: 3rem 1rem;
-            }
-            #container {
-                width: 100%;
-                max-width: 900px;
+                font-family: "Inter", system-ui, sans-serif;
+                background: var(--bg);
+                background-image: radial-gradient(circle at 50% -20%, #1d2a4d 0%, var(--bg) 60%);
+                color: var(--text);
+                min-height: 100vh;
                 display: flex;
                 flex-direction: column;
-                border: 1px solid #e0e0e0;
+            }
+
+            /* --- Ticker --- */
+            .ticker {
+                background: var(--gold);
+                color: #111;
+                font-weight: 800;
+                font-size: 0.75rem;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                white-space: nowrap;
+                overflow: hidden;
+                padding: 0.35rem 0;
+            }
+            .ticker span {
+                display: inline-block;
+                padding-left: 100%;
+                animation: scroll 28s linear infinite;
+            }
+            @keyframes scroll {
+                to {
+                    transform: translateX(-100%);
+                }
+            }
+
+            /* --- Header / score bug --- */
+            header {
+                max-width: 900px;
+                width: 100%;
+                margin: 0 auto;
+                padding: 1.5rem 1rem 0.5rem;
+            }
+            .bug {
+                display: inline-flex;
+                align-items: stretch;
+                border-radius: 6px;
+                overflow: hidden;
+                box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+            }
+            .bug .live {
+                background: var(--red);
+                font-family: var(--display);
+                font-size: 1rem;
+                letter-spacing: 0.1em;
+                padding: 0.5rem 0.75rem;
+                display: flex;
+                align-items: center;
+                gap: 0.4rem;
+            }
+            .bug .live::before {
+                content: "";
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: #fff;
+                animation: blink 1.2s infinite;
+            }
+            @keyframes blink {
+                50% {
+                    opacity: 0.2;
+                }
+            }
+            .bug h1 {
+                background: linear-gradient(90deg, var(--orange), #ff9a3d);
+                font-family: var(--display);
+                font-weight: 400;
+                font-size: clamp(1.8rem, 6vw, 2.8rem);
+                letter-spacing: 0.04em;
+                line-height: 1;
+                padding: 0.5rem 1rem;
+                color: #111;
+            }
+            .pitch {
+                font-family: var(--display);
+                font-size: clamp(1.1rem, 3.5vw, 1.5rem);
+                letter-spacing: 0.03em;
+                margin: 0.9rem 0 0.25rem;
+            }
+            .sub {
+                color: var(--muted);
+                font-size: 0.9rem;
+            }
+            .steps {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 0.5rem;
+                margin-top: 1rem;
+                list-style: none;
+                counter-reset: step;
+            }
+            .steps li {
+                background: var(--panel);
+                border: 1px solid var(--line);
+                border-top: 3px solid var(--blue);
+                border-radius: 6px;
+                padding: 0.6rem 0.75rem;
+                font-size: 0.85rem;
+                color: var(--muted);
+                counter-increment: step;
+            }
+            .steps li::before {
+                content: "Q" counter(step);
+                display: block;
+                font-family: var(--display);
+                color: var(--gold);
+                font-size: 1.1rem;
+                letter-spacing: 0.05em;
+            }
+            .steps b {
+                color: var(--text);
+            }
+
+            /* --- Chat --- */
+            main {
+                max-width: 900px;
+                width: 100%;
+                margin: 0 auto;
+                padding: 0 1rem 1rem;
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+            }
+            .toolbar {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+                align-items: center;
+                margin: 1rem 0 0.75rem;
+            }
+            .chip {
+                background: transparent;
+                color: var(--text);
+                border: 1px solid var(--line);
+                border-radius: 999px;
+                padding: 0.45rem 0.9rem;
+                font: inherit;
+                font-size: 0.85rem;
+                cursor: pointer;
+            }
+            .chip:hover {
+                border-color: var(--orange);
+                color: var(--orange);
+            }
+            #new-chat {
+                margin-left: auto;
+                border-color: var(--red);
+                color: #ff8a97;
             }
             #messages {
-                overflow-y: auto;
-                padding: 2rem;
+                flex: 1;
                 display: flex;
                 flex-direction: column;
-                gap: 1.5rem;
-                min-height: 450px;
-                max-height: 70vh;
+                gap: 1rem;
+                padding: 0.5rem 0 1rem;
+            }
+            .empty {
+                text-align: center;
+                color: var(--muted);
+                padding: 2rem 1rem;
+                border: 1px dashed var(--line);
+                border-radius: 8px;
             }
             .msg {
-                line-height: 1.5;
-                max-width: 80%;
+                max-width: 92%;
+                line-height: 1.55;
             }
             .msg.user {
                 align-self: flex-end;
-                text-align: right;
+                background: var(--blue);
+                padding: 0.6rem 0.9rem;
+                border-radius: 14px 14px 2px 14px;
             }
-            .msg .role {
+            .msg.assistant {
+                align-self: flex-start;
+                background: var(--panel);
+                border: 1px solid var(--line);
+                border-left: 4px solid var(--orange);
+                border-radius: 4px 14px 14px 14px;
+                padding: 0.8rem 1rem;
+                width: 92%;
+            }
+            .msg.loading {
+                color: var(--muted);
+                font-style: italic;
+            }
+            .msg.error {
+                border-left-color: var(--red);
+                color: #ffb3bd;
+            }
+            .label {
+                font-family: var(--display);
+                letter-spacing: 0.08em;
+                font-size: 0.8rem;
+                color: var(--orange);
+                margin-bottom: 0.3rem;
+            }
+            .text strong {
+                color: var(--gold);
+            }
+
+            /* --- Take card --- */
+            .card {
+                margin-top: 0.8rem;
+                background: var(--panel-2);
+                border: 1px solid var(--line);
+                border-radius: 8px;
+                padding: 0.75rem 0.9rem;
+            }
+            .card-top {
+                display: flex;
+                justify-content: space-between;
+                gap: 0.5rem;
+                flex-wrap: wrap;
+                align-items: center;
+            }
+            .chilis {
+                font-size: 1.05rem;
+                letter-spacing: 0.1em;
+            }
+            .chilis .off {
+                filter: grayscale(1);
+                opacity: 0.25;
+            }
+            .spice-label {
+                font-family: var(--display);
+                letter-spacing: 0.06em;
+                color: var(--red);
+                margin-left: 0.35rem;
+            }
+            .card-title {
+                font-weight: 600;
+                margin: 0.4rem 0;
+            }
+            .meta {
+                font-size: 0.8rem;
+                color: var(--muted);
+            }
+            .meta a {
+                color: var(--gold);
+            }
+            .stat-chip {
+                display: inline-block;
+                margin-top: 0.5rem;
+                background: #0f1626;
+                border: 1px solid var(--gold);
+                color: var(--gold);
+                border-radius: 4px;
+                padding: 0.25rem 0.55rem;
+                font-size: 0.8rem;
+                font-weight: 600;
+            }
+            details {
+                margin-top: 0.6rem;
+            }
+            summary {
+                cursor: pointer;
+                font-size: 0.8rem;
+                font-weight: 600;
+                color: var(--muted);
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+            }
+            summary:hover {
+                color: var(--text);
+            }
+            .pushback ul {
+                margin: 0.4rem 0 0 1.1rem;
+                font-size: 0.88rem;
+            }
+            .pushback li {
+                margin-bottom: 0.35rem;
+            }
+            .pushback h4 {
                 font-size: 0.75rem;
                 text-transform: uppercase;
-                letter-spacing: 0.05em;
-                color: #999;
-                margin-bottom: 0.25rem;
+                letter-spacing: 0.06em;
+                color: var(--orange);
+                margin-top: 0.5rem;
             }
-            .msg.loading .content {
-                color: #999;
-            }
-            #input-area {
+            .actions {
                 display: flex;
-                gap: 1rem;
-                padding: 1.5rem;
-                border-top: 1px solid #e0e0e0;
+                gap: 0.5rem;
+                margin-top: 0.7rem;
+            }
+            .small-btn {
+                background: transparent;
+                border: 1px solid var(--line);
+                color: var(--muted);
+                border-radius: 4px;
+                padding: 0.3rem 0.6rem;
+                font: inherit;
+                font-size: 0.75rem;
+                cursor: pointer;
+            }
+            .small-btn:hover {
+                color: var(--text);
+                border-color: var(--text);
+            }
+
+            /* --- Under the hood --- */
+            .hood .call {
+                margin-top: 0.5rem;
+                background: #0a0e18;
+                border: 1px solid var(--line);
+                border-radius: 6px;
+                padding: 0.5rem 0.65rem;
+                font-family: ui-monospace, Menlo, monospace;
+                font-size: 0.72rem;
+                white-space: pre-wrap;
+                word-break: break-word;
+                max-height: 260px;
+                overflow: auto;
+            }
+            .hood .call b {
+                color: var(--gold);
+            }
+
+            /* --- Input --- */
+            #input-area {
+                position: sticky;
+                bottom: 0;
+                display: flex;
+                gap: 0.5rem;
+                padding: 0.75rem 0 1rem;
+                background: linear-gradient(transparent, var(--bg) 30%);
             }
             #user-input {
                 flex: 1;
-                padding: 0.75rem 0;
-                border: none;
-                border-bottom: 1px solid #e0e0e0;
-                font-size: 1rem;
+                min-width: 0;
+                background: var(--panel);
+                border: 1px solid var(--line);
+                border-radius: 8px;
+                color: var(--text);
+                padding: 0.8rem 1rem;
+                font: inherit;
                 outline: none;
             }
             #user-input:focus {
-                border-bottom-color: #000;
+                border-color: var(--orange);
             }
-            button {
-                padding: 0.75rem 1.5rem;
-                background: #000;
-                color: #fff;
+            #send-btn {
+                background: var(--orange);
+                color: #111;
                 border: none;
-                font-size: 0.75rem;
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
+                border-radius: 8px;
+                padding: 0 1.2rem;
+                font-family: var(--display);
+                font-size: 1.05rem;
+                letter-spacing: 0.08em;
                 cursor: pointer;
             }
-            .tool {
-                font-family: ui-monospace, monospace;
-                font-size: 0.75rem;
-                color: #555;
-                background: #f5f5f5;
-                border-left: 3px solid #f59e0b;
-                padding: 0.5rem 0.75rem;
-                margin: 0.25rem 0 0.75rem;
-                white-space: pre-wrap;
-                word-break: break-word;
-            }
-            .tool .label {
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-                color: #b45309;
-            }
             button:disabled {
-                opacity: 0.3;
+                opacity: 0.4;
+                cursor: wait;
+            }
+
+            @media (max-width: 600px) {
+                .steps {
+                    grid-template-columns: 1fr;
+                }
+                .msg,
+                .msg.assistant {
+                    max-width: 100%;
+                    width: 100%;
+                }
+                #new-chat {
+                    margin-left: 0;
+                }
             }
         </style>
     </head>
     <body>
-        <div id="container">
-            <div id="messages"></div>
+        <div class="ticker">
+            <span>
+                🏀 Live takes from r/NBAHotTakes &amp; r/NBATalk &nbsp;•&nbsp; Stat receipts from ESPN
+                &nbsp;•&nbsp; Ammo for when your friends push back &nbsp;•&nbsp; Never invented, always
+                real &nbsp;•&nbsp;
+            </span>
+        </div>
+
+        <header>
+            <div class="bug">
+                <div class="live">LIVE</div>
+                <h1>BALL KNOWLEDGE</h1>
+            </div>
+            <p class="pitch">Sound like you watch every game.</p>
+            <p class="sub">
+                Your friends are into the NBA and you're not? Get a real, niche, spicy take from Reddit
+                fans, backed by a real stat.
+            </p>
+            <ol class="steps">
+                <li><b>Ask for a take</b>, about anything or a specific player or team.</li>
+                <li><b>Drop it</b> in the group chat. Copy it with one tap.</li>
+                <li><b>Friend disagrees?</b> Ask what to say back, and get the real counterarguments.</li>
+            </ol>
+        </header>
+
+        <main>
+            <div class="toolbar">
+                <button class="chip" data-prompt="Give me a niche take">🌶️ Give me a niche take</button>
+                <button class="chip" data-prompt="Give me a niche take about Stephen Curry">
+                    🎯 A take about Stephen Curry
+                </button>
+                <button class="chip" data-prompt="My friend says that's a terrible take, what do I say?">
+                    🛡️ My friend disagrees. What do I say?
+                </button>
+                <button class="chip" id="new-chat">↺ New chat</button>
+            </div>
+
+            <div id="messages">
+                <div class="empty" id="empty">
+                    Tap a prompt above or type your own. Try a player, a nickname ("Wemby"), or a team.
+                </div>
+            </div>
+
             <div id="input-area">
                 <input
                     type="text"
                     id="user-input"
-                    placeholder="Type a message..."
+                    placeholder="Ask for a take…"
                     autocomplete="off"
+                    maxlength="500"
                 />
-                <button id="send-btn">Send</button>
+                <button id="send-btn">SEND</button>
             </div>
-        </div>
+        </main>
+
         <script>
             const messages = document.getElementById("messages");
             const userInput = document.getElementById("user-input");
             const sendBtn = document.getElementById("send-btn");
-            let sessionId = null;
 
-            function addMessage(role, text, isLoading = false) {
-                const div = document.createElement("div");
-                div.className =
-                    "msg " +
-                    (role === "you" ? "user" : "assistant") +
-                    (isLoading ? " loading" : "");
-                div.innerHTML =
-                    '<div class="role">' +
-                    role +
-                    '</div><div class="content">' +
-                    text +
-                    "</div>";
-                messages.appendChild(div);
-                messages.scrollTop = messages.scrollHeight;
-                return div;
+            // Each browser tab is its own session: sessionStorage is per-tab.
+            let sessionId = sessionStorage.getItem("ballKnowledgeSession");
+
+            // --- Small helpers ---
+
+            function el(tag, className, text) {
+                const node = document.createElement(tag);
+                if (className) node.className = className;
+                if (text !== undefined) node.textContent = text;
+                return node;
             }
 
-            async function send() {
-                const text = userInput.value.trim();
-                if (!text) return;
+            function escapeHtml(text) {
+                const div = document.createElement("div");
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            // Escape first, then allow only **bold** and line breaks.
+            function renderText(text) {
+                return escapeHtml(text || "")
+                    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+                    .replace(/\n/g, "<br>");
+            }
+
+            function parse(result) {
+                try {
+                    return JSON.parse(result);
+                } catch {
+                    return {};
+                }
+            }
+
+            function scrollDown() {
+                window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+            }
+
+            // --- Building an assistant message ---
+
+            function chiliMeter(level) {
+                const meter = el("span", "chilis");
+                for (let i = 1; i <= 5; i++) meter.appendChild(el("span", i <= level ? "" : "off", "🌶️"));
+                return meter;
+            }
+
+            function takeCard(take, stats) {
+                const card = el("div", "card");
+                const top = el("div", "card-top");
+                const spice = el("div");
+                spice.appendChild(chiliMeter(take.spice));
+                spice.appendChild(el("span", "spice-label", take.spice_label.toUpperCase()));
+                top.appendChild(spice);
+                const meta = el("div", "meta");
+                const link = el("a", "", "r/" + take.subreddit + " ↗");
+                link.href = take.url;
+                link.target = "_blank";
+                link.rel = "noopener";
+                meta.appendChild(link);
+                meta.appendChild(document.createTextNode(" · " + take.num_comments + " comments"));
+                top.appendChild(meta);
+                card.appendChild(top);
+                card.appendChild(el("div", "card-title", "“" + take.title + "”"));
+                if (stats && stats.biggest_swings && stats.biggest_swings.length) {
+                    const swing = stats.biggest_swings[0];
+                    card.appendChild(
+                        el("span", "stat-chip", "📊 " + stats.player + ": " + swing.line + " (" + stats.season + ")"),
+                    );
+                }
+                return card;
+            }
+
+            function pushbackSection(data) {
+                const box = el("details", "pushback");
+                box.open = true;
+                box.appendChild(el("summary", "", "If they push back: " + data.take_title));
+                const lists = [
+                    ["What they'll say", data.counterarguments],
+                    ["How the original poster defended it", data.op_defenses],
+                ];
+                for (const [heading, items] of lists) {
+                    if (!items || !items.length) continue;
+                    box.appendChild(el("h4", "", heading));
+                    const ul = el("ul");
+                    for (const item of items) ul.appendChild(el("li", "", item.text + "  (▲" + item.score + ")"));
+                    box.appendChild(ul);
+                }
+                return box;
+            }
+
+            function underTheHood(toolCalls) {
+                const box = el("details", "hood");
+                box.appendChild(el("summary", "", "Under the hood · " + toolCalls.length + " tool call(s)"));
+                for (const call of toolCalls) {
+                    const pre = el("div", "call");
+                    pre.appendChild(el("b", "", call.name));
+                    pre.appendChild(
+                        document.createTextNode(
+                            "\nargs: " +
+                                JSON.stringify(call.args, null, 1) +
+                                "\nresult: " +
+                                JSON.stringify(parse(call.result), null, 1),
+                        ),
+                    );
+                    box.appendChild(pre);
+                }
+                return box;
+            }
+
+            // The "The take:" line from the answer, without markdown. Falls back to the whole answer.
+            function takeLine(text) {
+                const match = (text || "").match(/\*\*The take:\*\*\s*(.+)/);
+                return (match ? match[1] : text).replace(/\*\*/g, "").trim();
+            }
+
+            function fillAssistant(div, data) {
+                div.classList.remove("loading");
+                div.innerHTML = "";
+                div.appendChild(el("div", "label", "BALL KNOWLEDGE"));
+                const text = el("div", "text");
+                text.innerHTML = renderText(data.response);
+                div.appendChild(text);
+
+                const calls = data.tool_calls || [];
+                const resultOf = (name) => {
+                    const call = calls.find((c) => c.name === name);
+                    return call ? parse(call.result) : null;
+                };
+                const found = resultOf("find_hot_takes");
+                const stats = resultOf("get_stat_receipts");
+                const pushback = resultOf("prep_for_pushback");
+
+                if (found && found.takes && found.takes.length) {
+                    div.appendChild(takeCard(found.takes[0], stats && !stats.error ? stats : null));
+                }
+                if (pushback && !pushback.error) div.appendChild(pushbackSection(pushback));
+
+                const actions = el("div", "actions");
+                if (found && found.takes && found.takes.length) {
+                    const copy = el("button", "small-btn", "📋 Copy take");
+                    copy.addEventListener("click", async () => {
+                        try {
+                            await navigator.clipboard.writeText(takeLine(data.response));
+                            copy.textContent = "✓ Copied";
+                        } catch {
+                            copy.textContent = "Couldn't copy";
+                        }
+                        setTimeout(() => (copy.textContent = "📋 Copy take"), 1500);
+                    });
+                    actions.appendChild(copy);
+                    div.appendChild(actions);
+                }
+                if (calls.length) div.appendChild(underTheHood(calls));
+            }
+
+            // --- Sending ---
+
+            function addUser(text) {
+                document.getElementById("empty")?.remove();
+                messages.appendChild(el("div", "msg user", text));
+            }
+
+            async function send(text) {
+                text = (text || userInput.value).trim();
+                if (!text || sendBtn.disabled) return;
 
                 userInput.value = "";
                 sendBtn.disabled = true;
-                addMessage("you", text);
-                const loading = addMessage("assistant", "Thinking...", true);
+                addUser(text);
+                const reply = el("div", "msg assistant loading", "Checking the group chat…");
+                messages.appendChild(reply);
+                scrollDown();
 
                 try {
                     const res = await fetch("/chat", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            message: text,
-                            session_id: sessionId,
-                        }),
+                        body: JSON.stringify({ message: text, session_id: sessionId }),
                     });
+                    if (!res.ok) throw new Error("Server said " + res.status);
                     const data = await res.json();
                     sessionId = data.session_id;
-
-                    // Show each tool the harness ran, above the assistant's answer
-                    for (const call of data.tool_calls || []) {
-                        const div = document.createElement("div");
-                        div.className = "tool";
-                        const label = document.createElement("span");
-                        label.className = "label";
-                        label.textContent = "tool call  ";
-                        div.appendChild(label);
-                        div.appendChild(
-                            document.createTextNode(
-                                call.name + "(" + JSON.stringify(call.args) + ")\n→ " + call.result,
-                            ),
-                        );
-                        messages.insertBefore(div, loading);
-                    }
-                    loading.querySelector(".content").textContent =
-                        data.response;
-                    loading.classList.remove("loading");
+                    sessionStorage.setItem("ballKnowledgeSession", sessionId);
+                    fillAssistant(reply, data);
                 } catch (e) {
-                    loading.querySelector(".content").textContent =
-                        "Error: " + e.message;
-                    loading.classList.remove("loading");
+                    reply.classList.remove("loading");
+                    reply.classList.add("error");
+                    reply.textContent =
+                        "Couldn't reach Ball Knowledge (" + e.message + "). Check your connection and try again.";
                 }
                 sendBtn.disabled = false;
                 userInput.focus();
+                scrollDown();
             }
 
-            sendBtn.addEventListener("click", send);
-            userInput.addEventListener("keydown", function (e) {
+            async function newChat() {
+                if (sessionId) {
+                    fetch("/clear?session_id=" + encodeURIComponent(sessionId), { method: "POST" }).catch(() => {});
+                }
+                sessionId = null;
+                sessionStorage.removeItem("ballKnowledgeSession");
+                messages.innerHTML = "";
+                messages.appendChild(el("div", "empty", "Fresh session. Ask for a take."));
+                messages.firstChild.id = "empty";
+                userInput.focus();
+            }
+
+            sendBtn.addEventListener("click", () => send());
+            userInput.addEventListener("keydown", (e) => {
                 if (e.key === "Enter") send();
             });
+            document.querySelectorAll(".chip[data-prompt]").forEach((chip) =>
+                chip.addEventListener("click", () => send(chip.dataset.prompt)),
+            );
+            document.getElementById("new-chat").addEventListener("click", newChat);
             userInput.focus();
         </script>
     </body>
