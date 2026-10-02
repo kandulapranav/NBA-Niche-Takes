@@ -5,8 +5,10 @@
 Ball Knowledge is a chat agent for people whose friends are into the NBA but who don't follow
 it themselves. Ask for a take and you get a niche, spicy NBA opinion pulled from **real Reddit
 posts** (r/NBAHotTakes, r/NBATalk), backed by a **real stat** from ESPN, plus ammo for when a
-friend pushes back. It never invents takes or numbers; everything comes from a tool call, and
-the UI shows every tool call under each answer.
+friend pushes back. It never invents takes or numbers; everything comes from a tool call.
+The UI turns the tool results into a take card (spice meter, link to the original Reddit
+post, stat line, and the real Reddit replies), and `/chat` returns every tool call
+(`name`, `args`, `result`) in `tool_calls`.
 
 Built on the course starter `gemini-web-tool-calling`: FastAPI + LiteLLM + Gemini
 (`vertex_ai/gemini-3.5-flash-lite`) with the same hand-written tool-calling loop.
