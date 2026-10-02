@@ -6,23 +6,21 @@
         <title>Ball Knowledge</title>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
-            href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&display=swap"
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
             rel="stylesheet"
         />
         <style>
             :root {
-                --bg: #0c0f15;
-                --surface: #151a23;
-                --surface-2: #1c2330;
-                --line: #262e3c;
-                --text: #e9edf3;
-                --muted: #8b95a5;
-                --accent: #ff7a1a;
-                --accent-soft: rgba(255, 122, 26, 0.12);
-                --good: #3ddc97;
-                --bad: #ff6b7d;
-                --display: "Anton", Impact, "Arial Narrow", sans-serif;
-                --shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 18px 40px -18px rgba(0, 0, 0, 0.8);
+                --space: #07080f;
+                --paper: #ffffff;
+                --ink: #0b0c10;
+                --ink-soft: #4a4f5c;
+                --line: #0b0c10;
+                --faint: rgba(255, 255, 255, 0.55);
+                --orange: #f26a1b;
+                --good: #0f9d63;
+                --bad: #d6334a;
+                --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
             }
             * {
                 box-sizing: border-box;
@@ -31,8 +29,8 @@
             }
             body {
                 font-family: "Inter", system-ui, sans-serif;
-                background: var(--bg);
-                color: var(--text);
+                background: var(--space);
+                color: #fff;
                 min-height: 100vh;
                 display: flex;
                 flex-direction: column;
@@ -42,98 +40,228 @@
                 cursor: pointer;
             }
 
+            /* --- Starfield: two layers of tiny dots that twinkle out of sync --- */
+            .stars,
+            .stars::after {
+                position: fixed;
+                inset: 0;
+                z-index: -1;
+                pointer-events: none;
+                background-image:
+                    radial-gradient(1px 1px at 25px 35px, #fff, transparent),
+                    radial-gradient(1px 1px at 140px 80px, #fff, transparent),
+                    radial-gradient(1.5px 1.5px at 90px 160px, #fff, transparent),
+                    radial-gradient(1px 1px at 200px 220px, #fff, transparent),
+                    radial-gradient(1px 1px at 260px 60px, #fff, transparent);
+                background-size: 300px 260px;
+                opacity: 0.45;
+                animation: twinkle 5s ease-in-out infinite alternate;
+            }
+            .stars::after {
+                content: "";
+                background-size: 410px 370px;
+                background-position: 120px 90px;
+                animation-delay: -2.5s;
+            }
+            @keyframes twinkle {
+                to {
+                    opacity: 0.15;
+                }
+            }
+            .shooting-star {
+                position: fixed;
+                top: 12%;
+                left: 70%;
+                z-index: -1;
+                width: 90px;
+                height: 1px;
+                background: linear-gradient(90deg, rgba(255, 255, 255, 0.9), transparent);
+                transform: rotate(-20deg);
+                opacity: 0;
+                animation: shoot 9s ease-out infinite 2s;
+            }
+            @keyframes shoot {
+                0% {
+                    opacity: 0;
+                    transform: rotate(-20deg) translateX(0);
+                }
+                3% {
+                    opacity: 1;
+                }
+                10%,
+                100% {
+                    opacity: 0;
+                    transform: rotate(-20deg) translateX(-260px);
+                }
+            }
+
             /* --- Header --- */
             header {
-                position: sticky;
-                top: 0;
-                z-index: 2;
-                background: rgba(12, 15, 21, 0.85);
-                backdrop-filter: blur(10px);
-                border-bottom: 1px solid var(--line);
-            }
-            .bar {
-                max-width: 760px;
+                width: 100%;
+                max-width: 1100px;
                 margin: 0 auto;
-                padding: 0.85rem 1rem;
+                padding: 1.25rem 1.25rem 0;
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
             }
             .brand {
+                font-family: var(--mono);
+                font-weight: 700;
+                font-size: 0.8rem;
+                letter-spacing: 0.14em;
                 display: flex;
                 align-items: center;
-                gap: 0.55rem;
-                font-family: var(--display);
-                font-size: 1.35rem;
-                letter-spacing: 0.04em;
-                white-space: nowrap;
+                gap: 0.5rem;
             }
-            #new-chat {
-                background: none;
-                border: 1px solid var(--line);
-                color: var(--muted);
-                border-radius: 999px;
-                padding: 0.4rem 0.9rem;
-                font-size: 0.85rem;
-                white-space: nowrap;
+            .box-btn {
+                background: var(--paper);
+                color: var(--ink);
+                border: 1.5px solid var(--line);
+                border-radius: 6px;
+                padding: 0.45rem 0.85rem;
+                font-family: var(--mono);
+                font-size: 0.7rem;
+                font-weight: 700;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
             }
-            #new-chat:hover {
-                color: var(--text);
-                border-color: var(--muted);
+            .box-btn:hover {
+                background: #e9eaee;
             }
 
             /* --- Layout --- */
             main {
                 flex: 1;
                 width: 100%;
-                max-width: 760px;
+                max-width: 720px;
                 margin: 0 auto;
-                padding: 0 1rem;
+                padding: 0 1.25rem;
                 display: flex;
                 flex-direction: column;
             }
 
-            /* --- Welcome (shown until the first message) --- */
+            /* --- Welcome: floating basketball + title --- */
             #welcome {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
                 text-align: center;
-                padding: 3.5rem 0 2rem;
+                padding: 2.5rem 0 1rem;
+            }
+            #welcome[hidden] {
+                display: none;
+            }
+            .ball-scene {
+                position: relative;
+                width: 150px;
+                height: 190px;
+            }
+            .ball {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 150px;
+                height: 150px;
+                border-radius: 50%;
+                overflow: hidden;
+                /* Light from the top-left, shadow bottom-right, so it reads as a sphere. */
+                background: radial-gradient(circle at 34% 28%, #ffb27a 0%, #f26a1b 38%, #b8470b 72%, #5c2104 100%);
+                box-shadow:
+                    inset -16px -20px 34px rgba(0, 0, 0, 0.45),
+                    0 0 70px rgba(242, 106, 27, 0.28);
+                animation: float 5s ease-in-out infinite;
+            }
+            .ball svg {
+                width: 100%;
+                height: 100%;
+                animation: spin 14s linear infinite;
+            }
+            .ball-shadow {
+                position: absolute;
+                bottom: 0;
+                left: 30px;
+                width: 90px;
+                height: 12px;
+                border-radius: 50%;
+                background: rgba(242, 106, 27, 0.25);
+                filter: blur(6px);
+                animation: shadow 5s ease-in-out infinite;
+            }
+            @keyframes float {
+                50% {
+                    transform: translateY(-14px);
+                }
+            }
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+            @keyframes shadow {
+                50% {
+                    transform: scale(0.75);
+                    opacity: 0.6;
+                }
             }
             #welcome h1 {
-                font-family: var(--display);
-                font-weight: 400;
-                font-size: clamp(2rem, 7vw, 3rem);
-                letter-spacing: 0.02em;
-                line-height: 1.1;
+                margin-top: 1.25rem;
+                font-size: clamp(2.6rem, 9vw, 4.2rem);
+                font-weight: 800;
+                letter-spacing: -0.045em;
+                line-height: 1;
             }
-            #welcome h1 span {
-                color: var(--accent);
-            }
-            #welcome p {
-                color: var(--muted);
-                margin: 0.75rem auto 0;
-                max-width: 32rem;
-                line-height: 1.5;
-            }
-            .steps {
-                list-style: none;
-                display: flex;
-                justify-content: center;
-                flex-wrap: wrap;
-                gap: 0.5rem 1.5rem;
-                margin-top: 1.75rem;
-                font-size: 0.9rem;
-                color: var(--muted);
-            }
-            .steps b {
-                display: inline-grid;
-                place-items: center;
-                width: 1.4rem;
-                height: 1.4rem;
-                margin-right: 0.4rem;
-                border-radius: 50%;
-                background: var(--surface-2);
-                color: var(--accent);
+            .kicker {
+                margin-top: 0.8rem;
+                font-family: var(--mono);
                 font-size: 0.75rem;
+                letter-spacing: 0.2em;
+                text-transform: uppercase;
+                color: var(--faint);
+            }
+            #welcome p.lede {
+                margin-top: 1rem;
+                max-width: 30rem;
+                color: rgba(255, 255, 255, 0.7);
+                line-height: 1.55;
+            }
+
+            /* Numbered starter prompts, in a white panel. */
+            .starter {
+                margin-top: 1.75rem;
+                width: 100%;
+                max-width: 440px;
+                background: var(--paper);
+                color: var(--ink);
+                border: 1.5px solid var(--line);
+                border-radius: 10px;
+                padding: 0.9rem;
+                text-align: left;
+            }
+            .starter .eyebrow {
+                margin-bottom: 0.6rem;
+            }
+            .starter button {
+                width: 100%;
+                display: flex;
+                gap: 0.9rem;
+                align-items: center;
+                background: var(--paper);
+                color: var(--ink);
+                border: 1.5px solid var(--line);
+                border-radius: 6px;
+                padding: 0.6rem 0.75rem;
+                margin-top: 0.45rem;
+                font-size: 0.9rem;
+                text-align: left;
+            }
+            .starter button:hover {
+                background: #f1f2f5;
+            }
+            .starter button span {
+                font-family: var(--mono);
+                font-size: 0.72rem;
+                color: var(--ink-soft);
             }
 
             /* --- Messages --- */
@@ -146,50 +274,62 @@
             .msg.user {
                 align-self: flex-end;
                 max-width: 80%;
-                background: var(--surface-2);
-                padding: 0.65rem 1rem;
-                border-radius: 18px 18px 4px 18px;
+                border: 1.5px solid rgba(255, 255, 255, 0.85);
+                border-radius: 8px;
+                padding: 0.6rem 0.9rem;
                 line-height: 1.5;
             }
             .msg.assistant {
                 display: flex;
                 flex-direction: column;
-                gap: 0.75rem;
+                gap: 0.7rem;
                 line-height: 1.6;
             }
+            .lead-in {
+                color: rgba(255, 255, 255, 0.8);
+            }
             .plain strong {
-                font-weight: 600;
+                font-weight: 700;
             }
             .plain ul {
                 margin: 0.4rem 0 0 1.2rem;
             }
             .error {
-                color: var(--bad);
+                color: #ff8a9a;
+            }
+            .tools-used {
+                font-family: var(--mono);
+                font-size: 0.68rem;
+                letter-spacing: 0.08em;
+                color: rgba(255, 255, 255, 0.4);
             }
 
-            /* Cards slide up into place, one after another. */
+            /* Cards rise into place, one after another. */
             .rise {
                 animation: rise 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
             }
             @keyframes rise {
                 from {
                     opacity: 0;
-                    transform: translateY(12px) scale(0.98);
+                    transform: translateY(12px);
                 }
             }
 
-            /* --- Loading: bouncing basketball --- */
+            /* --- Loading --- */
             .thinking {
                 display: flex;
                 align-items: center;
-                gap: 0.6rem;
-                color: var(--muted);
-                font-style: italic;
+                gap: 0.7rem;
+                font-family: var(--mono);
+                font-size: 0.75rem;
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+                color: var(--faint);
                 min-height: 2rem;
             }
             .thinking .bounce {
                 display: inline-block;
-                font-size: 1.3rem;
+                font-size: 1.25rem;
                 animation: bounce 0.6s cubic-bezier(0.5, 0, 0.5, 1) infinite alternate;
             }
             @keyframes bounce {
@@ -219,42 +359,34 @@
                 }
             }
 
-            /* --- Shared card look --- */
-            .tile {
-                background: var(--surface);
-                border: 1px solid var(--line);
-                border-radius: 16px;
+            /* --- White paper cards --- */
+            .card {
+                background: var(--paper);
+                color: var(--ink);
+                border: 1.5px solid var(--line);
+                border-radius: 10px;
                 padding: 1rem 1.1rem;
-                box-shadow: var(--shadow);
-                transition: transform 0.2s, border-color 0.2s;
-            }
-            .tile:hover {
-                transform: translateY(-2px);
-                border-color: #344055;
+                box-shadow: 0 20px 50px -25px rgba(0, 0, 0, 0.9);
             }
             .eyebrow {
-                font-size: 0.7rem;
-                font-weight: 600;
+                display: block;
+                font-family: var(--mono);
+                font-size: 0.66rem;
+                font-weight: 700;
+                letter-spacing: 0.14em;
                 text-transform: uppercase;
-                letter-spacing: 0.08em;
-                color: var(--muted);
+                color: var(--ink-soft);
             }
 
-            /* --- Take: hero card --- */
-            .hero {
-                position: relative;
-                overflow: hidden;
-                padding: 1.25rem 1.3rem 1.1rem;
-                background:
-                    radial-gradient(120% 140% at 100% 0%, rgba(255, 122, 26, 0.18), transparent 55%),
-                    var(--surface);
-            }
+            /* Take: the main card */
             .hero-top {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
                 gap: 0.75rem;
                 flex-wrap: wrap;
+                padding-bottom: 0.75rem;
+                border-bottom: 1.5px solid var(--line);
             }
             .rating {
                 display: flex;
@@ -266,130 +398,134 @@
                 gap: 3px;
             }
             .meter span {
-                width: 18px;
-                height: 6px;
-                border-radius: 3px;
-                background: var(--line);
+                width: 16px;
+                height: 8px;
+                border: 1.5px solid var(--line);
+                border-radius: 2px;
             }
             .meter span.on {
-                background: var(--accent);
-                box-shadow: 0 0 8px rgba(255, 122, 26, 0.6);
+                background: var(--orange);
             }
             .rating-score {
+                font-family: var(--mono);
+                font-size: 0.75rem;
                 font-weight: 700;
-                font-size: 0.85rem;
             }
             .rating-score small {
-                color: var(--accent);
-                font-weight: 600;
-                margin-left: 0.3rem;
+                font-weight: 400;
+                color: var(--ink-soft);
+                margin-left: 0.35rem;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
             }
             .source {
-                font-size: 0.8rem;
-                color: var(--muted);
+                font-family: var(--mono);
+                font-size: 0.68rem;
+                font-weight: 700;
+                letter-spacing: 0.06em;
+                color: var(--ink);
                 text-decoration: none;
-                border: 1px solid var(--line);
-                border-radius: 999px;
-                padding: 0.25rem 0.65rem;
+                border: 1.5px solid var(--line);
+                border-radius: 6px;
+                padding: 0.25rem 0.55rem;
             }
             .source:hover {
-                color: var(--text);
-                border-color: var(--muted);
+                background: #f1f2f5;
             }
             .take-text {
-                font-size: clamp(1.25rem, 3.6vw, 1.6rem);
-                font-weight: 600;
-                line-height: 1.4;
-                letter-spacing: -0.01em;
-                margin: 0.9rem 0 0.8rem;
+                font-size: clamp(1.4rem, 4vw, 1.9rem);
+                font-weight: 700;
+                line-height: 1.3;
+                letter-spacing: -0.025em;
+                margin: 0.9rem 0;
             }
             .original {
                 font-size: 0.82rem;
-                color: var(--muted);
-                border-left: 2px solid var(--line);
-                padding-left: 0.6rem;
+                color: var(--ink-soft);
+            }
+            .original b {
+                font-family: var(--mono);
+                font-size: 0.66rem;
+                letter-spacing: 0.1em;
+                margin-right: 0.35rem;
             }
 
-            /* --- Take: tiles under the hero --- */
+            /* Take: tiles under the main card */
             .grid {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                gap: 0.75rem;
+                gap: 0.7rem;
             }
             .stat-big {
                 display: flex;
                 align-items: baseline;
-                gap: 0.5rem;
-                margin: 0.35rem 0 0.15rem;
+                gap: 0.45rem;
+                margin: 0.5rem 0 0.1rem;
             }
             .stat-big b {
-                font-family: var(--display);
-                font-weight: 400;
-                font-size: 2.4rem;
+                font-size: 2.6rem;
+                font-weight: 800;
+                letter-spacing: -0.04em;
                 line-height: 1;
             }
             .stat-big span {
-                color: var(--muted);
-                font-weight: 600;
+                font-family: var(--mono);
+                font-weight: 700;
+                font-size: 0.8rem;
             }
             .delta {
-                display: inline-block;
-                font-size: 0.75rem;
+                font-family: var(--mono);
+                font-size: 0.7rem;
                 font-weight: 700;
-                padding: 0.1rem 0.45rem;
-                border-radius: 999px;
             }
             .delta.up {
                 color: var(--good);
-                background: rgba(61, 220, 151, 0.12);
             }
             .delta.down {
                 color: var(--bad);
-                background: rgba(255, 107, 125, 0.12);
             }
-            .tile p {
-                font-size: 0.9rem;
-                margin-top: 0.45rem;
-                color: #c9d1dc;
+            .note {
+                font-family: var(--mono);
+                font-size: 0.68rem;
+                color: var(--ink-soft);
             }
-            .tile .note {
-                font-size: 0.78rem;
-                color: var(--muted);
+            .card p {
+                font-size: 0.92rem;
+                margin-top: 0.5rem;
             }
 
-            /* --- Argument: friend vs you exchange --- */
+            /* Argument: your friend vs you */
             .exchange {
                 display: flex;
                 flex-direction: column;
-                gap: 0.5rem;
+                gap: 0.55rem;
             }
             .bubble {
                 max-width: 85%;
-                padding: 0.7rem 0.95rem;
-                border-radius: 16px;
-                box-shadow: var(--shadow);
+                padding: 0.7rem 0.9rem;
+                border-radius: 10px;
                 font-size: 0.95rem;
             }
             .bubble .eyebrow {
-                display: block;
-                margin-bottom: 0.2rem;
+                margin-bottom: 0.25rem;
             }
             .bubble.friend {
                 align-self: flex-start;
-                background: var(--surface-2);
-                border-bottom-left-radius: 4px;
+                border: 1.5px dashed rgba(255, 255, 255, 0.45);
+                color: rgba(255, 255, 255, 0.9);
+            }
+            .bubble.friend .eyebrow {
+                color: var(--faint);
             }
             .bubble.you {
                 align-self: flex-end;
-                background: linear-gradient(135deg, rgba(255, 122, 26, 0.22), rgba(255, 122, 26, 0.1));
-                border: 1px solid rgba(255, 122, 26, 0.35);
-                border-bottom-right-radius: 4px;
-            }
-            .bubble.you .eyebrow {
-                color: var(--accent);
+                background: var(--paper);
+                color: var(--ink);
+                border: 1.5px solid var(--line);
+                box-shadow: 0 20px 50px -25px rgba(0, 0, 0, 0.9);
             }
 
-            /* --- Head-to-head stats --- */
+            /* Head-to-head stats */
             .h2h table {
                 width: 100%;
                 border-collapse: collapse;
@@ -397,62 +533,66 @@
                 font-variant-numeric: tabular-nums;
             }
             .h2h th {
-                font-size: 0.85rem;
-                font-weight: 600;
-                padding-bottom: 0.4rem;
+                font-size: 0.9rem;
+                font-weight: 700;
+                letter-spacing: -0.01em;
+                padding-bottom: 0.45rem;
             }
             .h2h th small {
                 display: block;
+                font-family: var(--mono);
                 font-weight: 400;
-                color: var(--muted);
-                font-size: 0.72rem;
+                color: var(--ink-soft);
+                font-size: 0.66rem;
             }
             .h2h td {
-                padding: 0.4rem 0;
-                border-top: 1px solid var(--line);
+                padding: 0.45rem 0;
+                border-top: 1px solid #dfe1e6;
                 text-align: center;
+                font-weight: 500;
             }
             .h2h td.label {
-                color: var(--muted);
-                font-size: 0.75rem;
-                font-weight: 600;
+                font-family: var(--mono);
+                color: var(--ink-soft);
+                font-size: 0.7rem;
+                font-weight: 700;
                 width: 22%;
             }
             .h2h td.win {
-                color: var(--good);
-                font-weight: 700;
+                font-weight: 800;
+            }
+            .h2h td.win::after {
+                content: " ●";
+                color: var(--orange);
+                font-size: 0.6rem;
+                vertical-align: middle;
             }
 
-            /* --- Reddit replies + copy --- */
-            details {
+            /* Reddit replies + copy */
+            details.card {
                 font-size: 0.88rem;
             }
             summary {
                 cursor: pointer;
-                color: var(--muted);
+                font-family: var(--mono);
+                font-size: 0.7rem;
+                font-weight: 700;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
             }
-            summary:hover {
-                color: var(--text);
-            }
-            details h4 {
-                margin-top: 0.7rem;
+            details .eyebrow {
+                margin-top: 0.8rem;
             }
             details ul {
                 margin: 0.3rem 0 0 1.1rem;
             }
             details li {
                 margin-bottom: 0.35rem;
-                color: #c9d1dc;
             }
-            .copy {
-                align-self: flex-start;
-                background: none;
-                border: none;
-                color: var(--muted);
-                font-size: 0.8rem;
-            }
-            .copy:hover {
-                color: var(--text);
+            .actions {
+                display: flex;
+                gap: 0.6rem;
+                align-items: center;
             }
 
             /* --- Composer --- */
@@ -461,56 +601,70 @@
                 bottom: 0;
                 margin-top: auto;
                 padding: 0.75rem 0 1.25rem;
-                background: linear-gradient(transparent, var(--bg) 25%);
+                background: linear-gradient(transparent, var(--space) 30%);
             }
             .chips {
                 display: flex;
-                gap: 0.5rem;
+                gap: 0.45rem;
                 overflow-x: auto;
                 padding-bottom: 0.6rem;
                 scrollbar-width: none;
             }
+            .chips[hidden] {
+                display: none;
+            }
             .chip {
                 flex: none;
-                background: var(--surface);
-                border: 1px solid var(--line);
-                color: var(--text);
-                border-radius: 999px;
-                padding: 0.45rem 0.85rem;
-                font-size: 0.85rem;
+                background: transparent;
+                color: rgba(255, 255, 255, 0.85);
+                border: 1.5px solid rgba(255, 255, 255, 0.35);
+                border-radius: 6px;
+                padding: 0.4rem 0.7rem;
+                font-family: var(--mono);
+                font-size: 0.7rem;
             }
             .chip:hover {
-                border-color: var(--accent);
+                border-color: #fff;
+                color: #fff;
             }
             .input-row {
                 display: flex;
-                gap: 0.5rem;
-                background: var(--surface);
-                border: 1px solid var(--line);
-                border-radius: 14px;
-                padding: 0.35rem;
-                box-shadow: var(--shadow);
-            }
-            .input-row:focus-within {
-                border-color: var(--accent);
+                gap: 0.45rem;
+                background: var(--paper);
+                border: 1.5px solid var(--line);
+                border-radius: 10px;
+                padding: 0.4rem;
             }
             #user-input {
                 flex: 1;
                 min-width: 0;
                 background: none;
-                border: none;
+                border: 1.5px solid var(--line);
+                border-radius: 6px;
                 outline: none;
-                color: var(--text);
-                font: inherit;
-                padding: 0.6rem 0.7rem;
+                color: var(--ink);
+                font-family: var(--mono);
+                font-size: 0.85rem;
+                padding: 0.6rem 0.75rem;
+            }
+            #user-input:focus {
+                box-shadow: 0 0 0 3px rgba(242, 106, 27, 0.25);
             }
             #send-btn {
-                background: var(--accent);
-                color: #1a0d00;
+                width: 2.6rem;
+                background: var(--ink);
+                color: #fff;
                 border: none;
-                border-radius: 10px;
-                padding: 0 1.1rem;
-                font-weight: 700;
+                border-radius: 6px;
+                font-size: 1.1rem;
+            }
+            .footnote {
+                margin-top: 0.55rem;
+                text-align: center;
+                font-family: var(--mono);
+                font-size: 0.64rem;
+                letter-spacing: 0.06em;
+                color: rgba(255, 255, 255, 0.35);
             }
             button:disabled {
                 opacity: 0.4;
@@ -518,16 +672,6 @@
             }
 
             @media (max-width: 600px) {
-                .brand {
-                    font-size: 1.1rem;
-                }
-                #welcome {
-                    padding-top: 2rem;
-                }
-                .steps {
-                    flex-direction: column;
-                    align-items: center;
-                }
                 .grid {
                     grid-template-columns: 1fr;
                 }
@@ -535,64 +679,93 @@
                 .bubble {
                     max-width: 92%;
                 }
+                .ball-scene {
+                    transform: scale(0.8);
+                }
             }
         </style>
     </head>
     <body>
+        <div class="stars"></div>
+        <div class="shooting-star"></div>
+
         <header>
-            <div class="bar">
-                <div class="brand"><span>🏀</span>BALL KNOWLEDGE</div>
-                <button id="new-chat">New chat</button>
-            </div>
+            <div class="brand">🏀 BALL KNOWLEDGE</div>
+            <button class="box-btn" id="new-chat">New chat</button>
         </header>
 
         <main>
             <section id="welcome">
-                <h1>Sound like you <span>watch every game.</span></h1>
-                <p>
+                <div class="ball-scene" aria-hidden="true">
+                    <div class="ball">
+                        <!-- The seams of a basketball; the whole drawing slowly spins. -->
+                        <svg viewBox="0 0 100 100" fill="none" stroke="#2b1004" stroke-width="2.2">
+                            <path d="M50 0 Q57 50 50 100" />
+                            <path d="M0 50 Q50 43 100 50" />
+                            <path d="M17 9 Q43 50 17 91" />
+                            <path d="M83 9 Q57 50 83 91" />
+                        </svg>
+                    </div>
+                    <div class="ball-shadow"></div>
+                </div>
+                <h1>Ball Knowledge</h1>
+                <div class="kicker">Sound like you watch every game</div>
+                <p class="lede">
                     Friends into the NBA and you're not? Get a real, spicy take from Reddit fans, backed
                     by a real stat, plus what to say when they push back.
                 </p>
-                <ol class="steps">
-                    <li><b>1</b>Ask for a take</li>
-                    <li><b>2</b>Drop it in the group chat</li>
-                    <li><b>3</b>Ask how to respond if they disagree</li>
-                </ol>
+                <div class="starter">
+                    <span class="eyebrow">Try one</span>
+                    <button data-prompt="Give me a niche take"><span>01</span>Give me a niche take</button>
+                    <button data-prompt="Give me a niche take about Stephen Curry">
+                        <span>02</span>Give me a niche take about Stephen Curry
+                    </button>
+                    <button data-prompt="My friend says that's a terrible take, what do I say?">
+                        <span>03</span>My friend says that's a terrible take, what do I say?
+                    </button>
+                </div>
             </section>
 
             <div id="messages"></div>
 
             <div class="composer">
-                <div class="chips">
-                    <button class="chip" data-prompt="Give me a niche take">Give me a niche take</button>
-                    <button class="chip" data-prompt="Give me a niche take about Stephen Curry">
-                        A take about Stephen Curry
-                    </button>
+                <div class="chips" id="chips" hidden>
+                    <button class="chip" data-prompt="Give me a niche take">Another take</button>
+                    <button class="chip" data-prompt="Give me a really spicy take">Something spicier</button>
                     <button class="chip" data-prompt="My friend says that's a terrible take, what do I say?">
-                        My friend disagrees. What do I say?
+                        My friend disagrees
                     </button>
                 </div>
                 <div class="input-row">
                     <input
                         type="text"
                         id="user-input"
-                        placeholder="Ask for a take about any player or team…"
+                        placeholder="Ask for a take on any player or team…"
                         autocomplete="off"
                         maxlength="500"
                     />
-                    <button id="send-btn">Send</button>
+                    <button id="send-btn" aria-label="Send">→</button>
                 </div>
+                <div class="footnote">GEMINI · TAKES FROM REDDIT · STATS FROM ESPN</div>
             </div>
         </main>
 
         <script>
             const messages = document.getElementById("messages");
             const welcome = document.getElementById("welcome");
+            const chips = document.getElementById("chips");
             const userInput = document.getElementById("user-input");
             const sendBtn = document.getElementById("send-btn");
 
             // Each browser tab is its own session: sessionStorage is per-tab.
             let sessionId = sessionStorage.getItem("ballKnowledgeSession");
+
+            // Friendly names for the tools, shown in a small line under each answer.
+            const TOOL_LABELS = {
+                find_hot_takes: "REDDIT TAKES",
+                get_stat_receipts: "ESPN STATS",
+                prep_for_pushback: "REDDIT REPLIES",
+            };
 
             // --- Small helpers ---
 
@@ -642,7 +815,7 @@
                 window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
             }
 
-            // Add a card to a message with a staggered slide-up animation.
+            // Add a block to a message with a staggered rise animation.
             function place(body, node) {
                 node.classList.add("rise");
                 node.style.animationDelay = body.children.length * 70 + "ms";
@@ -689,10 +862,10 @@
             }
 
             function heroCard(takeText, take) {
-                const card = el("div", "tile hero");
+                const card = el("div", "card");
                 const top = el("div", "hero-top");
                 top.appendChild(ratingMeter(take.spice, take.spice_label));
-                const link = el("a", "source", "r/" + take.subreddit + " ↗");
+                const link = el("a", "source", "R/" + take.subreddit.toUpperCase() + " ↗");
                 link.href = take.url;
                 link.target = "_blank";
                 link.rel = "noopener";
@@ -700,12 +873,15 @@
                 card.appendChild(top);
                 // The credit lives on the source link, so drop "via r/..." from the big text.
                 card.appendChild(el("p", "take-text", takeText.replace(/[,(\s]*via r\/\w+\)?\.?$/i, ".")));
-                card.appendChild(el("p", "original", "Original post: “" + take.title + "”"));
+                const original = el("p", "original");
+                original.appendChild(el("b", "", "ORIGINAL POST"));
+                original.appendChild(document.createTextNode("“" + take.title + "”"));
+                card.appendChild(original);
                 return card;
             }
 
             function receiptTile(stats, receiptText) {
-                const tile = el("div", "tile");
+                const tile = el("div", "card");
                 tile.appendChild(el("span", "eyebrow", "The receipt"));
                 const swing = stats && stats.biggest_swings && stats.biggest_swings[0];
                 if (swing) {
@@ -713,7 +889,7 @@
                     big.appendChild(el("b", "", swing.season));
                     big.appendChild(el("span", "", swing.stat));
                     const up = swing.change_pct >= 0;
-                    big.appendChild(el("span", "delta " + (up ? "up" : "down"), (up ? "▲ " : "▼ ") + Math.abs(swing.change_pct) + "%"));
+                    big.appendChild(el("span", "delta " + (up ? "up" : "down"), (up ? "▲" : "▼") + Math.abs(swing.change_pct) + "%"));
                     tile.appendChild(big);
                     tile.appendChild(el("span", "note", "vs " + swing.career + " career avg · " + stats.season.replace(" regular season", "")));
                 }
@@ -722,7 +898,7 @@
             }
 
             function textTile(eyebrow, text) {
-                const tile = el("div", "tile");
+                const tile = el("div", "card");
                 tile.appendChild(el("span", "eyebrow", eyebrow));
                 tile.appendChild(el("p", "", text));
                 return tile;
@@ -735,9 +911,9 @@
                 return node;
             }
 
-            // Side-by-side stats for two (or more) players; the better number in each row is green.
+            // Side-by-side stats for two (or more) players; the better number in each row gets a dot.
             function headToHead(players) {
-                const tile = el("div", "tile h2h");
+                const tile = el("div", "card h2h");
                 tile.appendChild(el("span", "eyebrow", "Head to head"));
                 const table = el("table");
                 const head = el("tr");
@@ -762,7 +938,7 @@
 
             // The real Reddit replies behind a pushback answer, collapsed by default.
             function redditReplies(data) {
-                const box = el("details", "tile");
+                const box = el("details", "card");
                 box.appendChild(el("summary", "", "See what Redditors actually said"));
                 const lists = [
                     ["Arguments against it", data.counterarguments],
@@ -770,7 +946,7 @@
                 ];
                 for (const [heading, items] of lists) {
                     if (!items || !items.length) continue;
-                    box.appendChild(el("h4", "eyebrow", heading));
+                    box.appendChild(el("span", "eyebrow", heading));
                     const ul = el("ul");
                     for (const item of items) ul.appendChild(el("li", "", item.text));
                     box.appendChild(ul);
@@ -779,11 +955,11 @@
             }
 
             function copyButton(text) {
-                const copy = el("button", "copy", "Copy take");
+                const copy = el("button", "box-btn", "Copy take");
                 copy.addEventListener("click", async () => {
                     try {
                         await navigator.clipboard.writeText(text);
-                        copy.textContent = "✓ Copied";
+                        copy.textContent = "Copied ✓";
                     } catch {
                         copy.textContent = "Couldn't copy";
                     }
@@ -792,12 +968,17 @@
                 return copy;
             }
 
+            // "REDDIT TAKES · ESPN STATS": which tools this answer used.
+            function toolsUsed(calls) {
+                const names = [...new Set(calls.map((c) => TOOL_LABELS[c.name] || c.name))];
+                return el("span", "tools-used", names.join(" · "));
+            }
+
             // --- Filling an assistant message ---
 
             function fillAssistant(body, data) {
                 body.innerHTML = "";
 
-                // Tool results (the raw calls stay out of the UI).
                 const calls = data.tool_calls || [];
                 const results = (name) =>
                     calls.filter((c) => c.name === name).map((c) => parse(c.result)).filter((r) => !r.error);
@@ -807,19 +988,20 @@
 
                 const { intro, parts } = sections(data.response);
                 const takeText = partText(parts, "the take");
+                const actions = el("div", "actions");
 
                 if (takeText && take) {
-                    // A take: big hero card, then the receipt and comeback side by side.
-                    if (intro) place(body, el("p", "", clean(intro)));
+                    // A take: main card, then the receipt and the comeback side by side.
+                    if (intro) place(body, el("p", "lead-in", clean(intro)));
                     place(body, heroCard(takeText, take));
                     const grid = el("div", "grid");
                     grid.appendChild(receiptTile(stats[0], partText(parts, "the receipt")));
                     grid.appendChild(textTile("If they push back", partText(parts, "if they push back")));
                     place(body, grid);
-                    place(body, copyButton(takeText));
+                    actions.appendChild(copyButton(takeText));
                 } else if (parts.some((p) => ["they'll say", "you say", "say this"].includes(p.label))) {
                     // An argument: a back-and-forth between your friend and you.
-                    if (intro) place(body, el("p", "", clean(intro)));
+                    if (intro) place(body, el("p", "lead-in", clean(intro)));
                     const exchange = el("div", "exchange");
                     for (const part of parts) {
                         if (part.label === "they'll say") exchange.appendChild(bubble("friend", clean(part.text)));
@@ -836,6 +1018,9 @@
                     if (stats.length >= 2) place(body, headToHead(stats));
                     if (pushback) place(body, redditReplies(pushback));
                 }
+
+                if (calls.length) actions.appendChild(toolsUsed(calls));
+                if (actions.children.length) place(body, actions);
             }
 
             // --- Sending ---
@@ -855,6 +1040,7 @@
                 if (!text || sendBtn.disabled) return;
 
                 welcome.hidden = true;
+                chips.hidden = false;
                 userInput.value = "";
                 sendBtn.disabled = true;
                 messages.appendChild(el("div", "msg user", text));
@@ -895,6 +1081,7 @@
                 sessionStorage.removeItem("ballKnowledgeSession");
                 messages.innerHTML = "";
                 welcome.hidden = false;
+                chips.hidden = true;
                 userInput.focus();
             }
 
@@ -902,8 +1089,8 @@
             userInput.addEventListener("keydown", (e) => {
                 if (e.key === "Enter") send();
             });
-            document.querySelectorAll(".chip").forEach((chip) =>
-                chip.addEventListener("click", () => send(chip.dataset.prompt)),
+            document.querySelectorAll("[data-prompt]").forEach((button) =>
+                button.addEventListener("click", () => send(button.dataset.prompt)),
             );
             document.getElementById("new-chat").addEventListener("click", newChat);
             userInput.focus();
