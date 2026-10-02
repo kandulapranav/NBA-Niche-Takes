@@ -422,45 +422,131 @@
                 }
             }
 
-            /* Typing indicator: three bouncing dots + caption */
+            /* Loading: a player hits a jump shot, on a loop (all parts share one 2s timeline). */
             .typing {
                 display: flex;
-                align-items: center;
-                gap: 0.6rem;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.2rem;
             }
-            .dots {
-                display: flex;
-                gap: 4px;
-                background: var(--surface);
-                border: 1px solid var(--edge);
+            .court {
+                width: 240px;
+                height: 144px;
+                padding: 0.4rem 0.6rem 0;
                 border-radius: 18px;
                 border-bottom-left-radius: 5px;
-                padding: 0.75rem 0.9rem;
-                box-shadow: 0 2px 8px -4px rgba(0, 0, 0, 0.5);
+                background: var(--surface);
+                border: 1px solid var(--edge);
+                overflow: visible;
             }
-            .dots span {
-                width: 7px;
-                height: 7px;
-                border-radius: 50%;
-                background: var(--orange);
-                animation: hop 1s ease-in-out infinite;
+            /* In SVG, transform-origin is measured in the drawing's own units. */
+            .court * {
+                transform-box: view-box;
             }
-            .dots span:nth-child(2) {
-                animation-delay: 0.15s;
+            .shooter {
+                animation: jump 2s ease-in-out infinite;
             }
-            .dots span:nth-child(3) {
-                animation-delay: 0.3s;
+            .shooting-arm {
+                transform-origin: 40px 76px; /* the shoulder */
+                animation: release 2s ease-in-out infinite;
             }
-            @keyframes hop {
+            .ball-in-hand {
+                animation: in-hand 2s step-end infinite;
+            }
+            .flying-ball {
+                /* The ball follows this arc from the shooter's hands, through the rim, down the net. */
+                offset-path: path("M48 45 Q108 -18 167 43 L168 70");
+                offset-rotate: auto;
+                animation: flight 2s ease-in infinite;
+            }
+            .net {
+                transform-origin: 167px 44px; /* top of the net */
+                animation: swish 2s ease-out infinite;
+            }
+            .plus-two {
+                animation: score 2s ease-out infinite;
+            }
+            @keyframes jump {
                 0%,
-                60%,
+                40%,
                 100% {
                     transform: translateY(0);
-                    opacity: 0.5;
                 }
-                30% {
-                    transform: translateY(-5px);
+                12% {
+                    transform: translateY(3px); /* crouch */
+                }
+                25% {
+                    transform: translateY(-10px); /* top of the jump */
+                }
+            }
+            @keyframes release {
+                0%,
+                18% {
+                    transform: rotate(-35deg); /* ball cocked by the head */
+                }
+                25%,
+                60% {
+                    transform: rotate(0deg); /* arm extended, holding the follow-through */
+                }
+                100% {
+                    transform: rotate(-35deg);
+                }
+            }
+            @keyframes in-hand {
+                0% {
                     opacity: 1;
+                }
+                25% {
+                    opacity: 0; /* released */
+                }
+                97% {
+                    opacity: 1;
+                }
+            }
+            @keyframes flight {
+                0%,
+                25% {
+                    offset-distance: 0%;
+                    opacity: 0;
+                }
+                26% {
+                    opacity: 1;
+                }
+                80% {
+                    offset-distance: 100%;
+                    opacity: 1;
+                }
+                86%,
+                100% {
+                    offset-distance: 100%;
+                    opacity: 0;
+                }
+            }
+            @keyframes swish {
+                0%,
+                68%,
+                90%,
+                100% {
+                    transform: scale(1, 1);
+                }
+                76% {
+                    transform: scale(0.85, 1.3);
+                }
+            }
+            @keyframes score {
+                0%,
+                74% {
+                    opacity: 0;
+                    transform: translateY(4px);
+                }
+                80%,
+                92% {
+                    opacity: 1;
+                    transform: translateY(-4px);
+                }
+                100% {
+                    opacity: 0;
+                    transform: translateY(-8px);
                 }
             }
             .typing small {
@@ -922,6 +1008,46 @@
             </div>
         </template>
 
+        <!-- Loading animation: a player hitting a jump shot. Animated by the .court CSS above. -->
+        <template id="shot-template">
+            <svg class="court" viewBox="0 0 200 120" aria-hidden="true">
+                <line x1="8" y1="112" x2="192" y2="112" stroke="rgba(255,255,255,0.15)" stroke-width="2" />
+
+                <!-- Hoop: pole, backboard, net, rim -->
+                <g stroke="rgba(255,255,255,0.55)" stroke-linecap="round">
+                    <line x1="186" y1="40" x2="186" y2="112" stroke-width="3" />
+                    <line x1="179" y1="40" x2="186" y2="40" stroke-width="3" />
+                    <line x1="178" y1="24" x2="178" y2="56" stroke-width="4" />
+                </g>
+                <g class="net" stroke="rgba(255,255,255,0.45)" stroke-width="1.2" fill="none">
+                    <path d="M158 44 L162 62 M163 44 L165 62 M171 44 L169 62 M176 44 L172 62" />
+                    <path d="M160 51 L174 51 M161 57 L173 57 M162 62 L172 62" />
+                </g>
+                <line x1="156" y1="44" x2="177" y2="44" stroke="#f26a1b" stroke-width="3" stroke-linecap="round" />
+
+                <!-- Shooter: jumps as one group; the shooting arm (holding the ball) rotates at the shoulder -->
+                <g class="shooter" stroke="#e9edf3" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none">
+                    <circle cx="40" cy="64" r="6" fill="#e9edf3" stroke="none" />
+                    <line x1="40" y1="72" x2="41" y2="92" />
+                    <polyline points="41,92 35,102 37,112" />
+                    <polyline points="41,92 47,102 45,112" />
+                    <line x1="40" y1="77" x2="46" y2="66" />
+                    <g class="shooting-arm">
+                        <line x1="40" y1="76" x2="47" y2="60" />
+                        <circle class="ball-in-hand" cx="48" cy="55" r="5" fill="#f26a1b" stroke="none" />
+                    </g>
+                </g>
+
+                <!-- The ball in flight, with one seam so you can see it spin along the arc -->
+                <g class="flying-ball">
+                    <circle r="5" fill="#f26a1b" />
+                    <line x1="-5" y1="0" x2="5" y2="0" stroke="#2b1004" stroke-width="1" />
+                </g>
+
+                <text class="plus-two" x="150" y="30" fill="#f26a1b" font-size="11" font-weight="800">+2</text>
+            </svg>
+        </template>
+
         <div class="app">
             <div class="window" id="window">
                 <header class="win-head">
@@ -1338,9 +1464,7 @@
                 row.appendChild(ball(30));
                 const stack = el("div", "stack");
                 const typing = el("div", "typing");
-                const dots = el("div", "dots");
-                for (let i = 0; i < 3; i++) dots.appendChild(el("span"));
-                typing.appendChild(dots);
+                typing.appendChild(document.getElementById("shot-template").content.firstElementChild.cloneNode(true));
                 typing.appendChild(el("small", "", "Generating original thoughts…"));
                 stack.appendChild(typing);
                 row.appendChild(stack);
