@@ -440,11 +440,7 @@
                 transform-box: view-box;
             }
             .shooter {
-                animation: jump 2s ease-in-out infinite;
-            }
-            .shooting-arm {
-                transform-origin: 40px 76px; /* the shoulder */
-                animation: release 2s ease-in-out infinite;
+                animation: jump 2s cubic-bezier(0.45, 0, 0.25, 1) infinite;
             }
             .ball-in-hand {
                 animation: in-hand 2s step-end infinite;
@@ -453,7 +449,7 @@
                 /* The ball follows this arc from the shooter's hands, through the rim, down the net. */
                 offset-path: path("M48 45 Q108 -18 167 43 L168 70");
                 offset-rotate: auto;
-                animation: flight 2s ease-in infinite;
+                animation: flight 2s linear infinite;
             }
             .net {
                 transform-origin: 167px 44px; /* top of the net */
@@ -464,7 +460,7 @@
             }
             @keyframes jump {
                 0%,
-                40%,
+                45%,
                 100% {
                     transform: translateY(0);
                 }
@@ -472,20 +468,10 @@
                     transform: translateY(3px); /* crouch */
                 }
                 25% {
-                    transform: translateY(-10px); /* top of the jump */
+                    transform: translateY(-10px); /* top of the jump: release */
                 }
-            }
-            @keyframes release {
-                0%,
-                18% {
-                    transform: rotate(-35deg); /* ball cocked by the head */
-                }
-                25%,
-                60% {
-                    transform: rotate(0deg); /* arm extended, holding the follow-through */
-                }
-                100% {
-                    transform: rotate(-35deg);
+                32% {
+                    transform: translateY(-8px); /* hang time */
                 }
             }
             @keyframes in-hand {
@@ -1020,17 +1006,31 @@
                 </g>
                 <line x1="156" y1="44" x2="177" y2="44" stroke="#f26a1b" stroke-width="3" stroke-linecap="round" />
 
-                <!-- Shooter: jumps as one group; the shooting arm (holding the ball) rotates at the shoulder -->
+                <!-- Shooter: the whole body jumps (CSS), and each limb bends at its joints by
+                     morphing between key poses: ready, crouch, release, wrist flick, land, hold. -->
                 <g class="shooter" stroke="#e9edf3" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none">
                     <circle cx="40" cy="64" r="6" fill="#e9edf3" stroke="none" />
                     <line x1="40" y1="72" x2="41" y2="92" />
-                    <polyline points="41,92 35,102 37,112" />
-                    <polyline points="41,92 47,102 45,112" />
-                    <line x1="40" y1="77" x2="46" y2="66" />
-                    <g class="shooting-arm">
-                        <line x1="40" y1="76" x2="47" y2="60" />
-                        <circle class="ball-in-hand" cx="48" cy="55" r="5" fill="#f26a1b" stroke="none" />
-                    </g>
+                    <!-- back leg: hip, knee, foot -->
+                    <polyline points="41,92 37,102 37,112">
+                        <animate attributeName="points" dur="2s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.12;0.25;0.32;0.45;0.75;1" keySplines="0.45 0 0.25 1;0.45 0 0.25 1;0.45 0 0.25 1;0.45 0 0.25 1;0.45 0 0.25 1;0.45 0 0.25 1" values="41,92 37,102 37,112;41,92 34,99 37,109;41,92 39,102 38,113;41,92 39,102 38,113;41,92 35,101 37,112;41,92 37,102 37,112;41,92 37,102 37,112" />
+                    </polyline>
+                    <!-- front leg -->
+                    <polyline points="41,92 46,102 45,112">
+                        <animate attributeName="points" dur="2s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.12;0.25;0.32;0.45;0.75;1" keySplines="0.45 0 0.25 1;0.45 0 0.25 1;0.45 0 0.25 1;0.45 0 0.25 1;0.45 0 0.25 1;0.45 0 0.25 1" values="41,92 46,102 45,112;41,92 48,99 45,109;41,92 43,102 44,113;41,92 43,102 44,113;41,92 47,101 45,112;41,92 46,102 45,112;41,92 46,102 45,112" />
+                    </polyline>
+                    <!-- guide arm: shoulder, elbow, hand -->
+                    <polyline points="40,77 44,73 43,63">
+                        <animate attributeName="points" dur="2s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.12;0.25;0.32;0.45;0.75;1" keySplines="0.45 0 0.25 1;0.45 0 0.25 1;0.45 0 0.25 1;0.45 0 0.25 1;0.45 0 0.25 1;0.45 0 0.25 1" values="40,77 44,73 43,63;40,77 44,77 43,67;40,77 45,70 46,64;40,77 44,72 45,66;40,77 43,76 44,70;40,77 43,77 43,71;40,77 44,73 43,63" />
+                    </polyline>
+                    <!-- shooting arm: shoulder, elbow, wrist, fingers -->
+                    <polyline points="40,76 47,74 46,64 48,61">
+                        <animate attributeName="points" dur="2s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.12;0.25;0.32;0.45;0.75;1" keySplines="0.45 0 0.25 1;0.45 0 0.25 1;0.45 0 0.25 1;0.45 0 0.25 1;0.45 0 0.25 1;0.45 0 0.25 1" values="40,76 47,74 46,64 48,61;40,76 47,78 45,69 47,66;40,76 43,66 47,58 49,55;40,76 43,66 47,58 51,60;40,76 43,66 47,58 51,60;40,76 44,68 47,60 51,62;40,76 47,74 46,64 48,61" />
+                    </polyline>
+                    <circle class="ball-in-hand" cx="47" cy="57" r="5" fill="#f26a1b" stroke="none">
+                        <animate attributeName="cx" dur="2s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.12;0.25;0.32;0.45;0.75;1" keySplines="0.45 0 0.25 1;0.45 0 0.25 1;0.45 0 0.25 1;0.45 0 0.25 1;0.45 0 0.25 1;0.45 0 0.25 1" values="47;46;48;48;48;47;47" />
+                        <animate attributeName="cy" dur="2s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.12;0.25;0.32;0.45;0.75;1" keySplines="0.45 0 0.25 1;0.45 0 0.25 1;0.45 0 0.25 1;0.45 0 0.25 1;0.45 0 0.25 1;0.45 0 0.25 1" values="57;62;55;55;55;57;57" />
+                    </circle>
                 </g>
 
                 <!-- The ball in flight, with one seam so you can see it spin along the arc -->
