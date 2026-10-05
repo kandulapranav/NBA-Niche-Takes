@@ -92,43 +92,6 @@ mamba mentality still cast doubt on how people view the very top tier of all-tim
 
 Takes come from live Reddit data, so you'll get different takes each time you ask.
 
-## Setup
-
-### Run locally
-
-Requires [uv](https://docs.astral.sh/uv/) and a Google Cloud project with billing and the
-Agent Platform (Vertex AI) API enabled. There are no API keys: the app calls Gemini
-(`vertex_ai/gemini-3.5-flash-lite` through LiteLLM) using Application Default Credentials.
-
-```bash
-gcloud auth application-default login
-uv run app.py
-```
-
-Then open http://localhost:8000. Tests: `uv run pytest` (unit tests),
-`uv run scripts/smoke.py` (each tool against the live APIs), and, with the server running,
-`uv run scripts/e2e_check.py` (a take → follow-up conversation end to end, plus a check that separate chats share no memory).
-
-### Deploy to Cloud Run
-
-1. Enable the APIs:
-   ```bash
-   gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com aiplatform.googleapis.com --project PROJECT_ID
-   ```
-2. In the console: **Cloud Run → Deploy container → Service → Continuously deploy from a
-   repository → Set up with Cloud Build**. Connect this GitHub repo, branch `^main$`, build
-   type **Python via Google Cloud's buildpacks** (the `Procfile` sets the start command).
-3. Settings: any region (e.g. `us-central1`), **Allow unauthenticated access**, and
-   **Maximum instances = 1**. Chat sessions live in memory, so every request has to reach the
-   same instance. No environment variables are needed.
-4. Let the service account call Gemini:
-   ```bash
-   gcloud projects add-iam-policy-binding PROJECT_ID \
-     --member="serviceAccount:PROJECT_NUMBER-compute@developer.gserviceaccount.com" \
-     --role="roles/aiplatform.user"
-   ```
-5. Click **Create**, then put the service URL in `submission.json`.
-
 ### Known limitations
 
 - Reddit data comes from Arctic Shift, a free, unofficial archive that sometimes rate-limits.
