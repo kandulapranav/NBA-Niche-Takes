@@ -3,7 +3,7 @@
 **Sound like you watch every game.**
 
 Ball Knowledge is a chat agent for people whose friends are into the NBA but who don't follow
-it themselves. Ask it for a take and it gives you a niche, spicy NBA opinion pulled from real
+it themselves. Ask it for a take and it gives you a niche NBA opinion pulled from real
 Reddit posts (r/NBAHotTakes and r/NBATalk), backs it up with a real stat from ESPN, and tells
 you what to say when a friend pushes back. It never makes up takes or numbers: everything
 comes from one of its tools.
