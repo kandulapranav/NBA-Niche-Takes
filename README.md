@@ -6,7 +6,7 @@ Ball Knowledge is a chat agent for people whose friends are into the NBA but who
 it themselves. Ask for a take and you get a niche, spicy NBA opinion pulled from **real Reddit
 posts** (r/NBAHotTakes, r/NBATalk), backed by a **real stat** from ESPN, plus ammo for when a
 friend pushes back. It never invents takes or numbers; everything comes from a tool call.
-The UI turns the tool results into a take card (spice meter, link to the original Reddit
+The UI turns the tool results into a take card (link to the original Reddit
 post, stat line, and the real Reddit replies), and `/chat` returns every tool call
 (`name`, `args`, `result`) in `tool_calls`.
 
@@ -35,7 +35,7 @@ the model never sees it as an argument. Different `session_id`s never share anyt
 
 Run these in order in one chat:
 
-1. **"Give me a niche take"** → `find_hot_takes` → a take plus its spice level.
+1. **"Give me a niche take"** → `find_hot_takes` → a real take, picked for how controversial it was.
 2. **"Give me a niche take about Stephen Curry"** → `find_hot_takes(player="Curry")` + `get_stat_receipts("Stephen Curry")`.
 3. **"My friend says that's a terrible take, what do I say?"** → `prep_for_pushback(<id of the take from #2>)`. This shows memory: the agent knows which take "that" is.
 

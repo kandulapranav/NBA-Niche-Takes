@@ -56,7 +56,6 @@ TAKE FORMAT (short enough to read off a phone):
 **The take:** the take rephrased in casual group-chat voice (1-2 sentences), credited "via r/<subreddit>".
 **The receipt:** one stat line from get_stat_receipts that backs up the take, naming the \
 season (skip if no stats). If no stat supports the take, give the most relevant one plainly.
-**Spice:** n/5 + label.
 **If they push back:** They'll say "<the friend's objection, i.e. the opposite of the take>" \
 → you say "<a comeback that keeps the take's position>". The user is the one making the take, \
 so the comeback DEFENDS the take; it never agrees with the objection. Base it on the post's \

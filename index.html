@@ -546,39 +546,7 @@
                 padding: 1rem 1.1rem;
                 box-shadow: var(--soft-shadow);
             }
-            .rating {
-                display: flex;
-                align-items: center;
-                gap: 0.55rem;
-            }
-            .meter {
-                display: flex;
-                gap: 3px;
-            }
-            .meter span {
-                width: 16px;
-                height: 7px;
-                border-radius: 4px;
-                background: var(--gray);
-            }
-            .meter span.on {
-                background: var(--gradient);
-            }
-            .rating .eyebrow {
-                white-space: nowrap;
-            }
-            .rating b {
-                font-size: 0.8rem;
-            }
-            .rating small {
-                font-size: 0.7rem;
-                font-weight: 700;
-                color: var(--orange);
-                text-transform: uppercase;
-                letter-spacing: 0.06em;
-            }
             .take-text {
-                margin-top: 0.7rem;
                 font-size: clamp(1.15rem, 3.4vw, 1.4rem);
                 font-weight: 700;
                 letter-spacing: -0.02em;
@@ -1241,9 +1209,13 @@
                 return div.innerHTML;
             }
 
-            // Plain text: remove markdown bold and escapes like "\#1".
+            // Plain text: remove markdown bold/italics (**x**, *x*) and escapes like "\#1".
             function clean(text) {
-                return (text || "").replace(/\\([#*_\-])/g, "$1").replace(/\*\*/g, "").trim();
+                return (text || "")
+                    .replace(/\\([#*_\-])/g, "$1")
+                    .replace(/\*\*/g, "")
+                    .replace(/\*(\S[^*]*?)\*/g, "$1")
+                    .trim();
             }
 
             // For answers that aren't a take or an argument: escape, then allow **bold** and bullets.
@@ -1318,15 +1290,6 @@
 
             function takeCard(takeText, take) {
                 const card = el("div", "card");
-                const rating = el("div", "rating");
-                rating.appendChild(el("span", "eyebrow", "Take rating"));
-                const meter = el("div", "meter");
-                for (let i = 1; i <= 5; i++) meter.appendChild(el("span", i <= take.spice ? "on" : ""));
-                rating.appendChild(meter);
-                rating.appendChild(el("b", "", take.spice + "/5"));
-                rating.appendChild(el("small", "", take.spice_label));
-                card.appendChild(rating);
-
                 // The credit is in the link preview, so drop "via r/..." from the big text.
                 card.appendChild(el("p", "take-text", takeText.replace(/[,(\s]*via r\/\w+\)?\.?$/i, ".")));
 
