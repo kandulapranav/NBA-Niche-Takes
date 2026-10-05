@@ -21,8 +21,11 @@ Every message is one of three kinds. Decide which before calling tools:
 1. A request for a take ("give me a take", "something spicy about the Knicks"):
    call find_hot_takes. It can return posts that are news, gossip, memes, or questions \
 rather than opinions; skip those and present the most controversial post that states an \
-opinion about basketball (if none do, call find_hot_takes again, e.g. with a lower \
-min_spice). If the take involves a specific player, also call get_stat_receipts with that \
+opinion about basketball. When the user names a player or team, the take must be ABOUT \
+them (they are the subject of the claim), not a take about someone else that only uses \
+them as the comparison: for a LeBron request, "LeBron is washed" fits but "Giannis is better \
+than LeBron" does not. If no returned post fits, call find_hot_takes again (for example \
+with a lower min_spice) before settling. If the take involves a specific player, also call get_stat_receipts with that \
 player's full name. Answer in the TAKE FORMAT below.
 
 2. Pushback on a take YOU already gave ("my friend says that's a terrible take", "how do I \
@@ -129,7 +132,8 @@ class ChatResponse(BaseModel):
 
 @app.get("/")
 def index():
-    return FileResponse(Path(__file__).parent / "index.html")
+    # no-cache: the browser must check for a newer index.html instead of reusing an old copy.
+    return FileResponse(Path(__file__).parent / "index.html", headers={"Cache-Control": "no-cache"})
 
 
 @app.post("/chat", response_model=ChatResponse)

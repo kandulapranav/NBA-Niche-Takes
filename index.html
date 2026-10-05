@@ -1230,7 +1230,9 @@
                     const line = raw.replace(/^\s*[-*]\s+/, "").trim();
                     if (!line) continue;
                     const labelled = line.match(/^\*\*([^*]+?):?\*\*:?\s*(.*)$/);
-                    if (labelled) parts.push({ label: labelled[1].toLowerCase(), text: labelled[2] });
+                    // Lowercase, and turn curly apostrophes (They’ll) into straight ones (They'll).
+                    const label = labelled && labelled[1].toLowerCase().replace(/[‘’]/g, "'");
+                    if (labelled) parts.push({ label, text: labelled[2] });
                     else if (parts.length) parts[parts.length - 1].text += " " + line;
                     else intro.push(line);
                 }
@@ -1306,10 +1308,20 @@
                 return node;
             }
 
+            // Backup when the model doesn't name a take id: the returned post sharing the most
+            // words (4+ letters) with the take text.
+            function closestTake(takes, text) {
+                const words = new Set((text || "").toLowerCase().match(/[a-z]{4,}/g) || []);
+                const overlap = (t) =>
+                    ((t.title + " " + t.body_preview).toLowerCase().match(/[a-z]{4,}/g) || []).filter((w) => words.has(w))
+                        .length;
+                return takes.reduce((best, t) => (overlap(t) > overlap(best) ? t : best), takes[0]);
+            }
+
             // "They'll say "..." → you say "..."" as a friend bubble and a you bubble.
             // Falls back to a plain labelled bubble if the model used a different shape.
             function pushbackCard(text) {
-                const match = text.match(/they'll say:?\s*["“](.+?)["”]\s*(?:→|->)?\s*you say:?\s*["“](.+)["”]\.?$/i);
+                const match = text.replace(/[‘’]/g, "'").match(/they'll say:?\s*["“](.+?)["”]\s*(?:→|->)?\s*you say:?\s*["“](.+)["”]\.?$/i);
                 if (!match) return labelled("If they push back:", text);
                 const card = el("div", "card");
                 card.appendChild(el("span", "eyebrow", "If they push back"));
@@ -1433,7 +1445,7 @@
                 // (find_hot_takes returns several, and the model may skip ones that aren't opinions.)
                 const allTakes = results("find_hot_takes").flatMap((r) => r.takes || []);
                 const takeId = partText(parts, "take id").replace(/[^a-z0-9]/gi, "").toLowerCase();
-                const take = allTakes.find((t) => t.id === takeId) || allTakes[0];
+                const take = allTakes.find((t) => t.id === takeId) || closestTake(allTakes, takeText);
 
                 if (takeText && take) {
                     // A take: take card, receipt block, and the comeback.
