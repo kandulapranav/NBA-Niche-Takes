@@ -699,6 +699,66 @@
                 color: var(--orange);
             }
 
+            /* Player profile ("who is this?") */
+            .profile-top {
+                display: flex;
+                align-items: center;
+                gap: 0.9rem;
+            }
+            .profile-top .headshot {
+                width: 4.2rem;
+                height: 4.2rem;
+                box-shadow:
+                    0 0 0 3px #0e111a,
+                    0 0 0 5px var(--orange);
+            }
+            .profile-top b {
+                display: block;
+                font-size: 1.2rem;
+                letter-spacing: -0.02em;
+            }
+            .profile-top span {
+                font-size: 0.85rem;
+                color: var(--soft-text);
+            }
+            .facts {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 0.5rem;
+                margin-top: 0.9rem;
+            }
+            .fact {
+                background: var(--canvas);
+                border: 1px solid var(--edge);
+                border-radius: 12px;
+                padding: 0.55rem 0.65rem;
+            }
+            .fact b {
+                display: block;
+                font-size: 0.95rem;
+                margin-top: 0.15rem;
+            }
+            .awards {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.4rem;
+                margin-top: 0.8rem;
+            }
+            .award {
+                padding: 0.25rem 0.65rem;
+                border-radius: 999px;
+                background: rgba(242, 106, 27, 0.14);
+                border: 1px solid rgba(242, 106, 27, 0.35);
+                color: #ffb27a;
+                font-size: 0.78rem;
+                font-weight: 600;
+            }
+            .profile-foot {
+                margin-top: 0.7rem;
+                font-size: 0.8rem;
+                color: var(--muted);
+            }
+
             /* Head-to-head stats */
             .h2h table {
                 width: 100%;
@@ -972,6 +1032,9 @@
                 .stack {
                     max-width: 92%;
                 }
+                .facts {
+                    grid-template-columns: repeat(2, 1fr);
+                }
             }
         </style>
     </head>
@@ -1129,6 +1192,7 @@
                 find_hot_takes: "REDDIT TAKES",
                 get_stat_receipts: "ESPN STATS",
                 prep_for_pushback: "REDDIT REPLIES",
+                get_player_profile: "ESPN PROFILE",
             };
 
             // Players for the carousel. The number is ESPN's athlete id, used for the headshot.
@@ -1351,6 +1415,52 @@
                 return card;
             }
 
+            // "Who is this player?": headshot, quick facts, and top awards.
+            function profileCard(p) {
+                const card = el("div", "card");
+                const top = el("div", "profile-top");
+                const shot = el("div", "headshot", p.player.split(" ").map((w) => w[0]).join(""));
+                if (p.headshot) {
+                    const img = el("img");
+                    img.src = p.headshot;
+                    img.alt = "";
+                    img.onerror = () => img.remove(); // fall back to initials
+                    shot.appendChild(img);
+                }
+                top.appendChild(shot);
+                const who = el("div");
+                who.appendChild(el("b", "", p.player));
+                who.appendChild(el("span", "", [p.position, p.jersey, p.team].filter(Boolean).join(" · ")));
+                top.appendChild(who);
+                card.appendChild(top);
+
+                // "2023: Rd 1, Pk 1 (SA)" reads better as "Pick 1 · 2023".
+                const draft = (p.draft || "").match(/(\d{4}): Rd \d+, Pk (\d+)/);
+                const facts = el("div", "facts");
+                for (const [label, value] of [
+                    ["Age", p.age],
+                    ["Height", p.height],
+                    ["In the league", p.experience],
+                    ["Draft", draft ? "Pick " + draft[2] + " · " + draft[1] : p.draft],
+                ]) {
+                    if (!value) continue;
+                    const fact = el("div", "fact");
+                    fact.appendChild(el("span", "eyebrow", label));
+                    fact.appendChild(el("b", "", value));
+                    facts.appendChild(fact);
+                }
+                card.appendChild(facts);
+
+                if (p.top_awards && p.top_awards.length) {
+                    const awards = el("div", "awards");
+                    for (const award of p.top_awards) awards.appendChild(el("span", "award", award));
+                    card.appendChild(awards);
+                }
+                const from = [p.college && "College: " + p.college, p.birthplace && "From " + p.birthplace];
+                if (from.some(Boolean)) card.appendChild(el("p", "profile-foot", from.filter(Boolean).join(" · ")));
+                return card;
+            }
+
             // Side-by-side stats for two (or more) players; the better number in each row is highlighted.
             function headToHead(players) {
                 const card = el("div", "card h2h");
@@ -1437,6 +1547,7 @@
                     calls.filter((c) => c.name === name).map((c) => parse(c.result)).filter((r) => !r.error);
                 const stats = results("get_stat_receipts");
                 const pushback = results("prep_for_pushback")[0];
+                const profile = results("get_player_profile")[0];
 
                 const { intro, parts } = sections(data.response);
                 const takeText = partText(parts, "the take");
@@ -1446,6 +1557,9 @@
                 const allTakes = results("find_hot_takes").flatMap((r) => r.takes || []);
                 const takeId = partText(parts, "take id").replace(/[^a-z0-9]/gi, "").toLowerCase();
                 const take = allTakes.find((t) => t.id === takeId) || closestTake(allTakes, takeText);
+
+                // A player profile goes first, whatever else the answer contains.
+                if (profile) place(stack, profileCard(profile));
 
                 if (takeText && take) {
                     // A take: take card, receipt block, and the comeback.

@@ -1,4 +1,4 @@
-"""get_stat_receipts: real NBA stats from ESPN's public (unofficial, keyless) API."""
+"""get_stat_receipts and get_player_profile: real NBA data from ESPN's public (unofficial, keyless) API."""
 
 import json
 
@@ -7,7 +7,9 @@ import requests
 from tools.fetch import get_json
 
 SEARCH_URL = "https://site.web.api.espn.com/apis/search/v2"
-STATS_URL = "https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes/{athlete_id}/stats"
+ATHLETE_URL = "https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes/{athlete_id}"
+STATS_URL = ATHLETE_URL + "/stats"
+OVERVIEW_URL = ATHLETE_URL + "/overview"  # has the awards list
 
 # A season with fewer games than this is too small a sample; use the season before it.
 MIN_GAMES = 5
@@ -22,6 +24,14 @@ SWING_PHRASES = {
     "3P%": "shooting {season}% from three vs {career}% for his career",
     "FT%": "shooting {season}% from the line vs {career}% for his career",
 }
+
+# ESPN lists awards in no particular order. These come first, biggest first; others follow.
+AWARD_RANK = [
+    "MVP", "Finals MVP", "Defensive Player of the Year", "Rookie of the Year", "All-NBA 1st Team",
+    "Clutch Player of the Year", "Most Improved Player", "All-NBA 2nd Team", "All-NBA 3rd Team",
+    "All-Defensive 1st Team", "NBA Cup MVP", "All-Star MVP", "All-Defensive 2nd Team",
+]
+TOP_AWARDS = 5
 
 
 def find_nba_player(player_name: str) -> dict | None:
@@ -113,4 +123,45 @@ def get_stat_receipts(player_name: str) -> str:
         "season_averages": season_averages,
         "career_averages": career_averages,
         "biggest_swings": biggest_swings(season_averages, career_averages),
+    })
+
+
+def top_awards(awards: list[dict], limit: int = TOP_AWARDS) -> list[str]:
+    """The player's biggest awards as short labels like "2x MVP", most important first."""
+    def rank(award: dict) -> int:
+        name = award.get("name", "")
+        return AWARD_RANK.index(name) if name in AWARD_RANK else len(AWARD_RANK)
+
+    ranked = sorted(awards, key=rank)
+    return [f"{a.get('displayCount', '1x')} {a['name']}" for a in ranked[:limit] if a.get("name")]
+
+
+def get_player_profile(player_name: str) -> str:
+    """Who a player is: team, position, age, size, experience, draft, college, and top awards."""
+    try:
+        player = find_nba_player(player_name)
+        if player is None:
+            return json.dumps({"error": f"No NBA player matched '{player_name}'. "
+                               "Use the full name, e.g. 'Victor Wembanyama'."})
+        athlete = get_json(ATHLETE_URL.format(athlete_id=player["id"]))["athlete"]
+        awards = get_json(OVERVIEW_URL.format(athlete_id=player["id"])).get("awards", [])
+    except (requests.RequestException, KeyError):
+        return json.dumps({"error": "ESPN player profiles are unavailable right now. Tell the user "
+                           "you couldn't load who this player is, and offer a take instead."})
+
+    return json.dumps({
+        "player": athlete.get("displayName", player["name"]),
+        "team": (athlete.get("team") or {}).get("displayName", player["team"]),
+        "position": (athlete.get("position") or {}).get("displayName"),
+        "jersey": athlete.get("displayJersey"),
+        "age": athlete.get("age"),
+        "height": athlete.get("displayHeight"),
+        "weight": athlete.get("displayWeight"),
+        "experience": athlete.get("displayExperience"),
+        "draft": athlete.get("displayDraft", "Undrafted"),
+        "college": (athlete.get("college") or {}).get("name"),
+        "birthplace": athlete.get("displayBirthPlace"),
+        "top_awards": top_awards(awards),
+        "headshot": (athlete.get("headshot") or {}).get("href"),
+        "note": "ESPN's awards list does not include championships or All-Star selections.",
     })

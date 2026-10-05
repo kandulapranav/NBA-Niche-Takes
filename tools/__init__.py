@@ -2,7 +2,7 @@
 
 import json
 
-from tools.espn import get_stat_receipts
+from tools.espn import get_player_profile, get_stat_receipts
 from tools.reddit_takes import find_hot_takes, prep_for_pushback
 
 # What the model sees: the "set notes" in the screenplay.
@@ -62,6 +62,31 @@ TOOLS = [
     {
         "type": "function",
         "function": {
+            "name": "get_player_profile",
+            "description": (
+                "Get a 'starter pack' on who an NBA player is: team, position, jersey, age, height, "
+                "weight, years in the league, draft pick, college, birthplace, and top career awards. "
+                "Use when the user asks who a player is or wants the basics about them (e.g. 'who is "
+                "Wemby?'). The awards list does not include championships, so never claim rings from it."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "player_name": {
+                        "type": "string",
+                        "description": (
+                            "Player's full name, e.g. 'Victor Wembanyama'. Convert nicknames to the "
+                            "full name before calling ('Wemby' -> 'Victor Wembanyama')."
+                        ),
+                    },
+                },
+                "required": ["player_name"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "prep_for_pushback",
             "description": (
                 "Get the strongest arguments real Redditors made against a specific take, plus the "
@@ -89,6 +114,7 @@ TOOLS = [
 TOOL_MAP = {
     "find_hot_takes": find_hot_takes,
     "get_stat_receipts": get_stat_receipts,
+    "get_player_profile": get_player_profile,
     "prep_for_pushback": prep_for_pushback,
 }
 

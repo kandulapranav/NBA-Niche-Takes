@@ -4,7 +4,7 @@ import json
 import time
 
 from tools import new_session_state, run_tool
-from tools.espn import biggest_swings, to_numbers
+from tools.espn import biggest_swings, to_numbers, top_awards
 from tools.reddit_takes import (
     is_question,
     is_usable,
@@ -98,6 +98,22 @@ def test_biggest_swings_skips_missing_or_zero_career_stats():
 
 def test_to_numbers_ignores_dashes():
     assert to_numbers(["GP", "PTS", "3P%"], ["5", "12.0", "-"]) == {"GP": 5.0, "PTS": 12.0}
+
+
+# --- Player profile awards ---
+
+
+def test_top_awards_puts_biggest_awards_first():
+    awards = [
+        {"name": "All-NBA 2nd Team", "displayCount": "5x"},
+        {"name": "Twyman-Stokes Teammate of the Year Award", "displayCount": "1x"},
+        {"name": "MVP", "displayCount": "2x"},
+        {"name": "Finals MVP", "displayCount": "1x"},
+    ]
+    assert top_awards(awards) == ["2x MVP", "1x Finals MVP", "5x All-NBA 2nd Team",
+                                  "1x Twyman-Stokes Teammate of the Year Award"]
+    assert top_awards(awards, limit=2) == ["2x MVP", "1x Finals MVP"]
+    assert top_awards([]) == []
 
 
 # --- Comment tree + dispatcher ---

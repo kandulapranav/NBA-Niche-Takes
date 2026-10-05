@@ -21,11 +21,13 @@ state = new_session_state()
 
 takes = show("live", "find_hot_takes", {"player": "Curry", "limit": 2}, state)
 show("live", "get_stat_receipts", {"player_name": "Stephen Curry"}, state)
+show("live", "get_player_profile", {"player_name": "Victor Wembanyama"}, state)
 if takes.get("takes"):
     time.sleep(2)  # be gentle with Arctic Shift
     show("live", "prep_for_pushback", {"take_id": takes["takes"][0]["id"]}, state)
 
 show("misspelled player", "get_stat_receipts", {"player_name": "Stef Curry"}, state)
+show("misspelled player", "get_player_profile", {"player_name": "Stef Curry"}, state)
 show("bad take_id", "prep_for_pushback", {"take_id": "t3_not-a-real-id!"}, state)
 
 os.environ["FORCE_TAKES_FALLBACK"] = "1"

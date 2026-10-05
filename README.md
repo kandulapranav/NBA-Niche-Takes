@@ -24,6 +24,7 @@ until Gemini answers in text (at most 5 rounds).
 | `find_hot_takes(player?, min_spice?, limit?)` | Real takes from Reddit, ranked by a 1–5 "spice" (controversy) score: `(1 − upvote_ratio) × log10(1 + comments)` | [Arctic Shift](https://arctic-shift.photon-reddit.com) Reddit archive, with `data/seed_takes.json` as a fallback |
 | `get_stat_receipts(player_name)` | Latest-season vs career averages, and the two stats that changed the most, phrased as ready-to-say lines | ESPN's public site API |
 | `prep_for_pushback(take_id)` | The top counterarguments Redditors made against a take, plus the original poster's own defenses | Arctic Shift comment trees |
+| `get_player_profile(player_name)` | A "starter pack" on who a player is: team, position, age, size, years in the league, draft pick, college, birthplace, top awards | ESPN's public site API |
 
 **Memory:** each session keeps its full message history (as in the starter) plus a small
 tool state: which takes were already shown (so they don't repeat) and their titles/authors
@@ -37,6 +38,8 @@ Run these in order in one chat:
 1. **"Give me a niche take"** → `find_hot_takes` → a take plus its spice level.
 2. **"Give me a niche take about Stephen Curry"** → `find_hot_takes(player="Curry")` + `get_stat_receipts("Stephen Curry")`.
 3. **"My friend says that's a terrible take, what do I say?"** → `prep_for_pushback(<id of the take from #2>)`. This shows memory: the agent knows which take "that" is.
+
+Bonus: **"Who is Wemby?"** → `get_player_profile("Victor Wembanyama")` shows a profile card with headshot, quick facts, and awards.
 
 ## Run locally
 
@@ -112,6 +115,7 @@ and reads the project ID from the metadata server.
 - **Preseason stats:** it's before the 2026-27 regular season, so `get_stat_receipts` uses the most
   recent season with at least 5 games played (currently 2025-26) and says which season it is.
 - **ESPN's API is unofficial** and undocumented; if it fails, the agent gives the take without numbers.
+  Its awards list (used by `get_player_profile`) doesn't include championships or All-Star selections.
 - **The first request after a restart is slow** (~15 s) while the Reddit cache fills up.
 - Sessions are in memory: they're lost when the instance restarts or scales to zero.
 
@@ -122,7 +126,7 @@ and reads the project ID from the metadata server.
 | `app.py` | FastAPI app: system prompt, tool-calling loop, session store, `/chat`, `/clear` |
 | `tools/__init__.py` | Tool schemas the model sees, the name → function map, and `run_tool` (never raises) |
 | `tools/reddit_takes.py` | `find_hot_takes`, `prep_for_pushback`, spice scoring, alias matching, seed fallback |
-| `tools/espn.py` | `get_stat_receipts` and the stat-swing calculation |
+| `tools/espn.py` | `get_stat_receipts`, `get_player_profile`, the stat-swing calculation, and award ranking |
 | `tools/fetch.py` | Shared `get_json`: 8 s timeout, one retry on 429, 30-minute cache |
 | `index.html` | The whole frontend (plain HTML/CSS/JS) |
 | `data/seed_takes.json` | Offline fallback takes, built by `scripts/build_seed.py` |
