@@ -1,7 +1,6 @@
 """Call each tool once against the live APIs, plus the failure cases. Run: uv run scripts/smoke.py"""
 
 import json
-import os
 import sys
 import time
 from pathlib import Path
@@ -29,8 +28,4 @@ if takes.get("takes"):
 show("misspelled player", "get_stat_receipts", {"player_name": "Stef Curry"}, state)
 show("misspelled player", "get_player_profile", {"player_name": "Stef Curry"}, state)
 show("bad take_id", "prep_for_pushback", {"take_id": "t3_not-a-real-id!"}, state)
-
-os.environ["FORCE_TAKES_FALLBACK"] = "1"
-fallback = show("FORCE_TAKES_FALLBACK=1", "find_hot_takes", {"min_spice": 4}, state)
-assert fallback.get("source") == "cached", "fallback should report source 'cached'"
 print("\nSmoke test done.")

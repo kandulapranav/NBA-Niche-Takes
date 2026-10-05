@@ -1,23 +1,20 @@
 """find_hot_takes and prep_for_pushback: real NBA takes and arguments from Reddit.
 
 Reddit data comes from Arctic Shift, a free, keyless Reddit archive. If it is down or
-rate-limits us, find_hot_takes falls back to data/seed_takes.json (built by scripts/build_seed.py).
+rate-limits us, the tools return an error message telling the model to try again shortly.
 """
 
 import json
 import math
-import os
 import re
 import time
 from datetime import date, timedelta
-from pathlib import Path
 
 import requests
 
 from tools.fetch import get_json
 
 ARCTIC_SHIFT = "https://arctic-shift.photon-reddit.com"
-SEED_PATH = Path(__file__).parent.parent / "data" / "seed_takes.json"
 
 # Spice = (1 - upvote_ratio) * log10(1 + num_comments): lots of argument, few upvotes.
 # A raw score below each cutoff gets that level; anything above the last cutoff is 5.
@@ -149,11 +146,6 @@ def fetch_live_posts() -> list[dict]:
     return posts
 
 
-def load_seed_posts() -> list[dict]:
-    """Posts saved by scripts/build_seed.py, for when the live archive is unavailable."""
-    return json.loads(SEED_PATH.read_text())
-
-
 # --- Tools ---
 
 
@@ -167,13 +159,12 @@ def find_hot_takes(player: str | None = None, min_spice: int = 1, limit: int = 3
     min_spice = min(max(int(min_spice), 1), 5)
     limit = min(max(int(limit), 1), 5)
 
-    source = "live"
     try:
-        if os.environ.get("FORCE_TAKES_FALLBACK") == "1":
-            raise requests.ConnectionError("FORCE_TAKES_FALLBACK is set")
         posts = fetch_live_posts()
     except (requests.RequestException, KeyError, ValueError):
-        posts, source = load_seed_posts(), "cached"
+        return json.dumps({"error": "Couldn't load Reddit takes right now (the archive may be "
+                           "down or rate-limiting). Try again in a minute; meanwhile you can still "
+                           "offer stats or a player profile."})
 
     now = time.time()
     posts = [p for p in posts if is_usable(p, now)]
@@ -204,7 +195,7 @@ def find_hot_takes(player: str | None = None, min_spice: int = 1, limit: int = 3
             "title": take["title"], "author": take["author"], "num_comments": take["num_comments"],
         }
 
-    return json.dumps({"source": source, "takes": takes})
+    return json.dumps({"takes": takes})
 
 
 def is_bot(author: str) -> bool:
