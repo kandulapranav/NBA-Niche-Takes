@@ -11,6 +11,7 @@
         />
         <style>
             :root {
+                color-scheme: dark; /* dark native scrollbars and form controls */
                 --space: #07080f;
                 --window: rgba(14, 17, 26, 0.45);
                 --surface: rgba(255, 255, 255, 0.06);
@@ -1305,6 +1306,24 @@
                 return node;
             }
 
+            // "They'll say "..." → you say "..."" as a friend bubble and a you bubble.
+            // Falls back to a plain labelled bubble if the model used a different shape.
+            function pushbackCard(text) {
+                const match = text.match(/they'll say:?\s*["“](.+?)["”]\s*(?:→|->)?\s*you say:?\s*["“](.+)["”]\.?$/i);
+                if (!match) return labelled("If they push back:", text);
+                const card = el("div", "card");
+                card.appendChild(el("span", "eyebrow", "If they push back"));
+                const exchange = el("div", "exchange");
+                for (const [who, line] of [["friend", match[1]], ["you", match[2]]]) {
+                    const say = el("div", "say " + who);
+                    say.appendChild(el("span", "eyebrow", who === "friend" ? "Your friend" : "You say"));
+                    say.appendChild(document.createTextNode(line));
+                    exchange.appendChild(say);
+                }
+                card.appendChild(exchange);
+                return card;
+            }
+
             function argumentCard(parts) {
                 const card = el("div", "card");
                 card.appendChild(el("span", "eyebrow", "How to argue it"));
@@ -1404,12 +1423,17 @@
                 const calls = data.tool_calls || [];
                 const results = (name) =>
                     calls.filter((c) => c.name === name).map((c) => parse(c.result)).filter((r) => !r.error);
-                const take = results("find_hot_takes").map((r) => r.takes && r.takes[0]).find(Boolean);
                 const stats = results("get_stat_receipts");
                 const pushback = results("prep_for_pushback")[0];
 
                 const { intro, parts } = sections(data.response);
                 const takeText = partText(parts, "the take");
+
+                // Show the Reddit post the model actually used: it names it on a "Take id:" line.
+                // (find_hot_takes returns several, and the model may skip ones that aren't opinions.)
+                const allTakes = results("find_hot_takes").flatMap((r) => r.takes || []);
+                const takeId = partText(parts, "take id").replace(/[^a-z0-9]/gi, "").toLowerCase();
+                const take = allTakes.find((t) => t.id === takeId) || allTakes[0];
 
                 if (takeText && take) {
                     // A take: take card, receipt block, and the comeback.
@@ -1420,7 +1444,7 @@
                     const receiptText = partText(parts, "the receipt");
                     if (receiptText) place(stack, el("p", "receipt-note", receiptText));
                     const comeback = partText(parts, "if they push back");
-                    if (comeback) place(stack, labelled("If they push back:", comeback));
+                    if (comeback) place(stack, pushbackCard(comeback));
                     place(stack, actionsRow(calls, takeText));
                 } else if (parts.some((p) => ["they'll say", "you say", "say this"].includes(p.label))) {
                     // An argument: what your friend will say and what you say back.
@@ -1432,7 +1456,7 @@
                 } else {
                     // Anything else (greetings, errors, off-topic): a plain bubble.
                     const bubble = el("div", "bubble bot");
-                    bubble.innerHTML = renderPlain(data.response);
+                    bubble.innerHTML = renderPlain(data.response.replace(/\*\*Take id:\*\*.*$/gim, ""));
                     bubble.appendChild(el("span", "time", now()));
                     place(stack, bubble);
                     if (stats.length >= 2) place(stack, headToHead(stats));
