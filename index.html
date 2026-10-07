@@ -794,6 +794,40 @@
                 margin-bottom: 0.35rem;
             }
 
+            /* Under the hood: every tool call (name, args, result JSON), collapsed by default. */
+            .hood {
+                padding-left: 0.2rem;
+            }
+            .hood summary {
+                font-family: var(--mono);
+                font-size: 0.64rem;
+                font-weight: 700;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+                color: var(--muted);
+            }
+            .hood summary:hover {
+                color: var(--text);
+            }
+            .hood .call {
+                margin-top: 0.5rem;
+                padding: 0.6rem 0.75rem;
+                max-height: 260px;
+                overflow: auto;
+                background: rgba(0, 0, 0, 0.35);
+                border: 1px solid var(--edge);
+                border-radius: 10px;
+                font-family: var(--mono);
+                font-size: 0.72rem;
+                line-height: 1.5;
+                color: var(--soft-text);
+                white-space: pre-wrap;
+                overflow-wrap: anywhere;
+            }
+            .hood .call b {
+                color: var(--orange-2);
+            }
+
             .actions {
                 display: flex;
                 align-items: center;
@@ -1501,6 +1535,25 @@
                 return row;
             }
 
+            // "Under the hood": every tool call this turn, with its name, arguments, and result.
+            function underTheHood(calls) {
+                const box = el("details", "hood");
+                const count = calls.length + (calls.length === 1 ? " tool call" : " tool calls");
+                box.appendChild(el("summary", "", "Under the hood · " + count));
+                for (const call of calls) {
+                    const block = el("div", "call");
+                    block.appendChild(el("b", "", call.name));
+                    block.appendChild(
+                        document.createTextNode(
+                            "\nargs: " + JSON.stringify(call.args, null, 2) +
+                                "\nresult: " + JSON.stringify(parse(call.result), null, 2),
+                        ),
+                    );
+                    box.appendChild(block);
+                }
+                return box;
+            }
+
             // --- Filling an assistant message ---
 
             function fillAssistant(stack, data) {
@@ -1553,6 +1606,8 @@
                     if (pushback) place(stack, redditReplies(pushback));
                     if (calls.length) place(stack, actionsRow(calls));
                 }
+
+                if (calls.length) place(stack, underTheHood(calls));
             }
 
             // --- Sending ---
