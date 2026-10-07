@@ -332,6 +332,9 @@
                 color: var(--soft-text);
                 text-align: left;
             }
+            .options button[hidden] {
+                display: none;
+            }
             .options button::before {
                 content: "";
                 flex: none;
@@ -1095,7 +1098,7 @@
                         <div class="orb" id="orb"></div>
                         <h1>What can I help you with?</h1>
                         <p>
-                            Friends into the NBA and you're not? Get a real, spicy take from Reddit fans,
+                            Friends into the NBA and you're not? Get a real hot take from Reddit fans,
                             backed by a real stat, plus what to say when they push back.
                         </p>
                         <div class="options">
@@ -1103,9 +1106,6 @@
                             <button data-prompt="Give me a niche take">Give me a niche take</button>
                             <button data-prompt="Give me a niche take about Stephen Curry">
                                 Give me a niche take about Stephen Curry
-                            </button>
-                            <button data-prompt="My friend says that's a terrible take, what do I say?">
-                                My friend says that's a terrible take, what do I say?
                             </button>
                             <button data-action="players">Pick a player…</button>
                         </div>
@@ -1135,7 +1135,8 @@
                     <button class="go" id="go">Get a take</button>
                     <div class="options">
                         <button data-prompt="Give me a really spicy take">Something really spicy</button>
-                        <button data-prompt="My friend says that's a terrible take, what do I say?">
+                        <!-- Only shown once there's a conversation to push back on (see openSheet). -->
+                        <button id="friend-option" data-prompt="My friend says that's a terrible take, what do I say?">
                             My friend disagrees with my last take
                         </button>
                     </div>
@@ -1662,6 +1663,8 @@
             function openSheet() {
                 document.getElementById("menu").hidden = true;
                 windowEl.classList.add("sheet-open");
+                // "My friend disagrees" only makes sense after the agent has said something.
+                document.getElementById("friend-option").hidden = messages.children.length === 0;
                 pickPlayer(document.querySelector(".player"), PLAYERS[0][0]);
             }
 

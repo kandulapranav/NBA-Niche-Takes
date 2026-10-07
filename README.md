@@ -90,6 +90,30 @@ mamba mentality still cast doubt on how people view the very top tier of all-tim
 
 *Tools used: Reddit takes.*
 
+### Example 4: who is this player?
+
+> **You:** tell me about nikola jokic
+
+**Nikola Jokic**: Center · #15 · Denver Nuggets
+
+| Age | Height | In the league | Draft |
+|---|---|---|---|
+| 31 | 6' 11" | 12th Season | Pick 41 · 2014 |
+
+**Top awards:** 3x MVP · 1x Finals MVP · 6x All-NBA 1st Team · 2x All-NBA 2nd Team ·
+1x NBA Western Conference Finals MVP
+
+*From Sombor, Serbia*
+
+The Joker is the 31-year-old Serbian center and absolute engine for the Denver Nuggets,
+drafted all the way back in the second round of 2014 and stacking up three MVPs and a Finals
+MVP along the way.
+
+**Drop this:** "Bro, you can't teach vision like that. Jokic sees the floor better than prime
+point guards while playing center."
+
+*Tools used: career summary.*
+
 Takes come from live Reddit data, so you'll get different takes each time you ask.
 
 ### Known limitations
