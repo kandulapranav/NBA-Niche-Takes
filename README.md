@@ -8,6 +8,9 @@ Reddit posts (r/NBAHotTakes and r/NBATalk), backs it up with a real stat from ES
 you what to say when a friend pushes back. It never makes up takes or numbers: everything
 comes from one of its tools.
 
+## Live URL
+https://nba-niche-takes-v2-git-485071834023.europe-west1.run.app
+
 ## Tools
 
 - **Get Reddit takes and threads** (`find_hot_takes`, `prep_for_pushback`): finds the most
